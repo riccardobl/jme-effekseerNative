@@ -1,0 +1,26 @@
+MaterialDef  Composer {
+
+    MaterialParameters {
+        Int NumSamples
+        Int NumSamplesDepth
+
+        Texture2D Texture
+        Texture2D ParticlesColor
+        Texture2D DepthTexture
+
+    }
+
+    Technique {
+        VertexShader GLSL150 :   Effekseer/Composer.vert
+        FragmentShader GLSL150 : Effekseer/Composer.frag
+
+        WorldParameters {
+        }
+
+        Defines {
+            RESOLVE_MS : NumSamples
+        }
+
+    }
+
+}

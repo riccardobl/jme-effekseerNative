@@ -1,0 +1,56 @@
+apply plugin: 'maven'
+apply plugin: 'java-library'
+
+
+repositories {
+    jcenter()
+    maven {  
+		url "https://jitpack.io" 
+    }
+    maven {
+         url  "https://dl.bintray.com/riccardo/effekseer" 
+    }
+}
+
+dependencies {
+
+    api "effekseer:effekseer-native:jme1.1.0"
+
+    compileOnly "org.jmonkeyengine:jme3-core:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-lwjgl:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-desktop:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-bullet:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-effects:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-plugins:3.2.3-stable"
+    compileOnly "org.jmonkeyengine:jme3-bullet-native:3.2.3-stable"
+
+    testImplementation 'com.github.polincdev:JesseModel:-SNAPSHOT'    
+    testImplementation "org.jmonkeyengine:jme3-core:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-lwjgl:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-desktop:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-bullet:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-effects:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-plugins:3.2.3-stable"
+    testImplementation "org.jmonkeyengine:jme3-bullet-native:3.2.3-stable"
+}
+
+
+
+jar {
+
+  from {
+    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
+
+task testJar(type: Jar) {
+    classifier = 'test'
+    from sourceSets.test.output
+    manifest {
+        attributes(
+        'Main-Class': 'EffekseerTest'
+        )
+    }
+    from { configurations.testRuntimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}

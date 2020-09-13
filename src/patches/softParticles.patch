@@ -1,0 +1,231 @@
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_distortion_ps.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_distortion_ps.h
+index 98c65f11..7a8755c8 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_distortion_ps.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_distortion_ps.h
+@@ -80,6 +80,7 @@ static const char model_distortion_ps_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -149,6 +150,8 @@ void main()
+     Input.Color = _VSPS_Color;
+     vec4 _186 = _main(Input);
+     _entryPointOutput = _186;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_distortion_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_distortion_PS.h
+index 00f753c6..bee6840f 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_distortion_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_distortion_PS.h
+@@ -194,6 +194,7 @@ static const char model_renderer_distortion_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -377,6 +378,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _467 = _main(Input);
+     _entryPointOutput = _467;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_lighting_texture_normal_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_lighting_texture_normal_PS.h
+index 7c8ab738..c57193ee 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_lighting_texture_normal_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_lighting_texture_normal_PS.h
+@@ -232,6 +232,7 @@ static const char model_renderer_lighting_texture_normal_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -453,6 +454,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _542 = _main(Input);
+     _entryPointOutput = _542;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_texture_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_texture_PS.h
+index 6fe06c6a..4d64ff27 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_texture_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_renderer_texture_PS.h
+@@ -226,6 +226,7 @@ static const char model_renderer_texture_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -441,6 +442,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _480 = _main(Input);
+     _entryPointOutput = _480;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_unlit_ps.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_unlit_ps.h
+index c9e89ef4..a6dd9bbf 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_unlit_ps.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/model_unlit_ps.h
+@@ -52,6 +52,7 @@ static const char model_unlit_ps_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -93,6 +94,8 @@ void main()
+     Input.Color = _VSPS_Color;
+     vec4 _65 = _main(Input);
+     _entryPointOutput = _65;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_distortion_ps.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_distortion_ps.h
+index 92de408e..5a1f5748 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_distortion_ps.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_distortion_ps.h
+@@ -77,6 +77,7 @@ static const char sprite_distortion_ps_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -143,6 +144,8 @@ void main()
+     Input.PosR = _VSPS_PosR;
+     vec4 _182 = _main(Input);
+     _entryPointOutput = _182;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_lit_ps.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_lit_ps.h
+index 5e4126c1..0c39179a 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_lit_ps.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_lit_ps.h
+@@ -83,6 +83,7 @@ static const char sprite_lit_ps_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -155,6 +156,8 @@ void main()
+     Input.ScreenUV = _VSPS_ScreenUV;
+     vec4 _158 = _main(Input);
+     _entryPointOutput = _158;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_unlit_ps.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_unlit_ps.h
+index 2989860d..2c374794 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_unlit_ps.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/sprite_unlit_ps.h
+@@ -56,6 +56,8 @@ static const char sprite_unlit_ps_gl3[] = R"(
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
+ 
++SOFT_PARTICLES.HEADER.gl3
++
+ struct PS_Input
+ {
+     vec4 Pos;
+@@ -99,6 +101,7 @@ void main()
+     Input.UV = _VSPS_UV;
+     vec4 _65 = _main(Input);
+     _entryPointOutput = _65;
++    SOFT_PARTICLES.BODY.gl3
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_PS.h
+index 3f45b4af..bfd87691 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_PS.h
+@@ -187,6 +187,7 @@ static const char standard_renderer_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -363,6 +364,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _413 = _main(Input);
+     _entryPointOutput = _413;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_distortion_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_distortion_PS.h
+index a1163aac..d6ce0fae 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_distortion_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_distortion_PS.h
+@@ -194,6 +194,7 @@ static const char standard_renderer_distortion_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -377,6 +378,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _467 = _main(Input);
+     _entryPointOutput = _467;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
+diff --git a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_lighting_PS.h b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_lighting_PS.h
+index b89d49af..41c67664 100644
+--- a/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_lighting_PS.h
++++ b/Dev/Cpp/EffekseerRendererGL/EffekseerRenderer/ShaderHeader/standard_renderer_lighting_PS.h
+@@ -197,6 +197,7 @@ static const char standard_renderer_lighting_PS_gl3[] = R"(
+ #ifdef GL_ARB_shading_language_420pack
+ #extension GL_ARB_shading_language_420pack : require
+ #endif
++SOFT_PARTICLES.HEADER.gl3
+ 
+ struct PS_Input
+ {
+@@ -383,6 +384,8 @@ void main()
+     Input.Others = _VSPS_Others;
+     vec4 _466 = _main(Input);
+     _entryPointOutput = _466;
++    SOFT_PARTICLES.BODY.gl3
++
+ }
+ 
+ )";
