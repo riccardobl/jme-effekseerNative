@@ -10,12 +10,18 @@ Supported platforms:
 
 TODO:
 
-[ ] Distortions
+- Distortions
 
-[ ] Sounds
+- Sounds
 
 ## Gradle 
-```
+```gradle
+repositories {
+	maven { url 'https://jitpack.io' }
+}
+dependencies {
+	implementation 'com.github.riccardobl:jme-effekseerNative:-SNAPSHOT'
+}
 
 ```
 
