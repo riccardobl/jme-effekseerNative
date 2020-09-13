@@ -15,18 +15,18 @@ public class EffekseerEmitterControl extends AbstractControl{
     protected List<Integer> instances=new ArrayList<Integer>();
 
     protected EffekseerEffectCore effekt;
-    protected EmissionDriver driver=new EmissionDriverGeneric();
+    protected EffekseerEmissionDriver driver=new EffekseerEmissionDriverGeneric();
 
       
     public EffekseerEmitterControl(EffekseerEffectCore e){
         effekt=e;
     }
 
-    public void setDriver(EmissionDriver d){
+    public void setDriver(EffekseerEmissionDriver d){
         driver=d;
     }
 
-    public EmissionDriver getDriver(){
+    public EffekseerEmissionDriver getDriver(){
         return driver;
     }
 

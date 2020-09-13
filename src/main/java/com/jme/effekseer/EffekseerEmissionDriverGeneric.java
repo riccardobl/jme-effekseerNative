@@ -10,7 +10,7 @@ import java.util.function.Supplier;
 import com.jme3.math.Transform;
 import com.jme3.scene.Spatial;
 
-public class EmissionDriverGeneric implements EmissionDriver{
+public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     public static enum CallbackType{
         SET_HANDLE,
         DESTROY_HANDLE
@@ -29,12 +29,12 @@ public class EmissionDriverGeneric implements EmissionDriver{
         time+=tpf;
     }
 
-    public EmissionDriverGeneric emitFunction(Function< Float,Callback>  f){
+    public EffekseerEmissionDriverGeneric emitFunction(Function< Float,Callback>  f){
         this.emitFunction=f;
         return this;
     }
 
-    public EmissionDriverGeneric shapeFunction( BiFunction< Integer,Spatial,Transform>  f){
+    public EffekseerEmissionDriverGeneric shapeFunction( BiFunction< Integer,Spatial,Transform>  f){
         this.shapeFunction=f;
         return this;
     }

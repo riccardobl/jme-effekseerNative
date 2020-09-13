@@ -3,11 +3,15 @@ import com.jme.effekseer.EffekseerEmitterControl;
 import com.jme.effekseer.EffekseerEmitterEmitFunctions;
 import com.jme.effekseer.EffekseerEmitterShapeFunctions;
 import com.jme.effekseer.EffekseerPostRenderer;
-import com.jme.effekseer.EmissionDriverGeneric;
+import com.jme.effekseer.EffekseerEmissionDriverGeneric;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.filters.DepthOfFieldFilter;
+import com.jme3.post.filters.BloomFilter.GlowMode;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.system.AppSettings;
 
 import org.jesse.Jesse;
@@ -24,6 +28,8 @@ public class EffekseerTest extends SimpleApplication{
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
         fpp.addFilter(new EffekseerPostRenderer(assetManager));
+        fpp.addFilter(new BloomFilter(GlowMode.Scene));
+        fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
         
 
         flyCam.setMoveSpeed(10);
@@ -32,7 +38,7 @@ public class EffekseerTest extends SimpleApplication{
 
 
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Flame.efkefc");
-        effekt.setDriver(new EmissionDriverGeneric()
+        effekt.setDriver(new EffekseerEmissionDriverGeneric()
             .emitFunction(EffekseerEmitterEmitFunctions.emitLoop(1,0,0f,0f))
             .shapeFunction(EffekseerEmitterShapeFunctions.pointFollowingSpatial())
         );

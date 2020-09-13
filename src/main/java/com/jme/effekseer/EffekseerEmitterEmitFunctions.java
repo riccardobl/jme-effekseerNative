@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import com.jme.effekseer.EmissionDriverGeneric.Callback;
-import com.jme.effekseer.EmissionDriverGeneric.CallbackType;
+import com.jme.effekseer.EffekseerEmissionDriverGeneric.Callback;
+import com.jme.effekseer.EffekseerEmissionDriverGeneric.CallbackType;
 import com.jme3.math.FastMath;
 
 public class EffekseerEmitterEmitFunctions{
@@ -45,9 +45,9 @@ public class EffekseerEmitterEmitFunctions{
 
                 if(instances.size()>maxInstances)return null;
                 return (type,handle)->{
-                    if(type==EmissionDriverGeneric.CallbackType.DESTROY_HANDLE){
+                    if(type==EffekseerEmissionDriverGeneric.CallbackType.DESTROY_HANDLE){
                         instances.remove(handle);
-                    }else  if(type==EmissionDriverGeneric.CallbackType.SET_HANDLE){
+                    }else  if(type==EffekseerEmissionDriverGeneric.CallbackType.SET_HANDLE){
                         instances.add(handle);
                     }
                 };
