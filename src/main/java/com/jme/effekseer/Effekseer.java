@@ -95,6 +95,10 @@ public class Effekseer{
         return state.get();
     }
 
+    public static void setAsync(int threads) {
+        State state=getState();
+        state.core.LaunchWorkerThreads(threads);
+    }
 
     /**
      * Init and return an effekseer instance

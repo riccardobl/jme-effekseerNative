@@ -8,10 +8,13 @@ Supported platforms:
 - Windows 64bit
 - Linux 64bit
 
-TODO:
+Extra features:
+- Soft particles
+- Multiscene rendering
+- Offscreen rendering
 
+Missing features:
 - Distortions
-
 - Sounds
 
 ## Gradle 
@@ -40,9 +43,10 @@ EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("
 
 // Set a driver (optional)
 effekt.setDriver(
-    new EmissionDriverGeneric()
-    .emitFunction(EffekseerEmitterEmitFunctions.emitLoop(100,0,1f,2f))
-    .shapeFunction(EffekseerEmitterShapeFunctions.pointFollowingSpatial())
+    new EffekseerEmissionDriverGeneric()
+        .shape(new EffekseerPointFollowingSpatialShape())
+        .spawner(new EffekseerGenericSpawner().loop(true).delay(1f,2f, 1f).maxInstances(1000))
+        .dynamicInputSupplier(new EffekseerGenericDynamicInputSupplier().set(0,10f).set(1,11f))
 );
 
 // Attach to a spatial

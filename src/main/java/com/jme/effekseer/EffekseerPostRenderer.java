@@ -23,6 +23,12 @@ public class EffekseerPostRenderer extends Filter{
         Effekseer.init(manager);
     }
     
+
+    public void setAsync(int nThreads){
+        Effekseer.setAsync(nThreads);
+    }
+
+
     @Override
     protected void initFilter(AssetManager manager, RenderManager renderManager, ViewPort vp, int w, int h) {
         assert manager!=null;

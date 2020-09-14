@@ -26,9 +26,12 @@ public class EffekseerTest extends SimpleApplication{
         JesseSpatial sp=Jesse.buildAndAttachScene(assetManager,rootNode);
         sp.playAnim(0,JesseAnimations.Run,true);
         
+        EffekseerPostRenderer effekseerRenderer=new EffekseerPostRenderer(assetManager);
+        effekseerRenderer.setAsync(1);
+
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
-        fpp.addFilter(new EffekseerPostRenderer(assetManager));
+        fpp.addFilter(effekseerRenderer);
         fpp.addFilter(new BloomFilter(GlowMode.Scene));
         fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
         
@@ -42,7 +45,7 @@ public class EffekseerTest extends SimpleApplication{
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()
                 .shape(new EffekseerPointFollowingSpatialShape())
-                .spawner(new EffekseerGenericSpawner().loop(true).delay(0.4f, 1f, 1f).maxInstances(1000))
+                .spawner(new EffekseerGenericSpawner().loop(true).delay(1f,2f, 1f).maxInstances(1000))
                 .dynamicInputSupplier(new EffekseerGenericDynamicInputSupplier().set(0,10f).set(1,11f))
         );
         sp.addControl(effekt);
