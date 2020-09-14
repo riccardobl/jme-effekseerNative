@@ -20,7 +20,8 @@ Missing features:
 ## Gradle 
 ```gradle
 repositories {
-	maven { url 'https://jitpack.io' }
+    maven { url 'https://jitpack.io' }    
+    maven { url  "https://dl.bintray.com/riccardo/effekseer" }
 }
 dependencies {
 	implementation 'com.github.riccardobl:jme-effekseerNative:-SNAPSHOT'
