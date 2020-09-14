@@ -1,9 +1,10 @@
 
 import com.jme.effekseer.EffekseerEmitterControl;
-import com.jme.effekseer.EffekseerEmitterEmitFunctions;
-import com.jme.effekseer.EffekseerEmitterShapeFunctions;
 import com.jme.effekseer.EffekseerPostRenderer;
-import com.jme.effekseer.EffekseerEmissionDriverGeneric;
+import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
+import com.jme.effekseer.driver.fun.impl.EffekseerGenericDynamicInputSupplier;
+import com.jme.effekseer.driver.fun.impl.EffekseerGenericSpawner;
+import com.jme.effekseer.driver.fun.impl.EffekseerPointFollowingSpatialShape;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -38,13 +39,11 @@ public class EffekseerTest extends SimpleApplication{
 
 
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Flame.efkefc");
-        effekt.setDriver(new EffekseerEmissionDriverGeneric()
-            .emitFunction(EffekseerEmitterEmitFunctions.emitLoop(1,0,0f,0f))
-            .shapeFunction(EffekseerEmitterShapeFunctions.pointFollowingSpatial())
-            .dynamicInputsSupplier((handle,setter)->{
-                // Set input 0 = 10
-                setter.set(0,10);
-            })
+        effekt.setDriver(
+            new EffekseerEmissionDriverGeneric()
+                .shape(new EffekseerPointFollowingSpatialShape())
+                .spawner(new EffekseerGenericSpawner().loop(true).delay(0.4f, 1f, 1f).maxInstances(1000))
+                .dynamicInputSupplier(new EffekseerGenericDynamicInputSupplier().set(0,10f).set(1,11f))
         );
         sp.addControl(effekt);
 

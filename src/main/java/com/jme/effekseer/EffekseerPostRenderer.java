@@ -10,10 +10,14 @@ import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.Image.Format;
 
+/**
+ * EffekseerPostRenderer does all the rendering stuff for you, just add it to your FilterPostProcessor and it will just work.
+ * @author Riccardo Balbo
+ */
 public class EffekseerPostRenderer extends Filter{
-    private FrameBuffer renderTarget;
-    private Texture2D particlesColor,particlesDepth;
-    private float tpf;
+    protected FrameBuffer renderTarget;
+    protected Texture2D particlesColor,particlesDepth;
+    protected float tpf;
 
     public EffekseerPostRenderer(AssetManager manager){
         Effekseer.init(manager);

@@ -27,7 +27,6 @@ import com.jme3.renderer.Camera;
 import com.jme3.renderer.Caps;
 import com.jme3.renderer.Renderer;
 import com.jme3.renderer.RendererException;
-import com.jme3.renderer.opengl.GL;
 import com.jme3.renderer.opengl.GLRenderer;
 import com.jme3.scene.Spatial;
 import com.jme3.system.NativeLibraryLoader;
@@ -40,19 +39,20 @@ import com.jme3.texture.Texture2D;
 import com.jme3.texture.image.ColorSpace;
 import com.jme3.util.BufferUtils;
 
-import org.lwjgl.opengl.GL30;
 
 import Effekseer.swig.EffekseerBackendCore;
 import Effekseer.swig.EffekseerEffectCore;
 import Effekseer.swig.EffekseerManagerCore;
 import Effekseer.swig.EffekseerTextureType;
-
+/**
+ * Effekseer wrapper. This should not be used directly, unless you have to. EffekseerPostRenderer should be used for general usage.
+ * Note: 
+ *      This implementation uses only one instance of Effekseer runtime per thread. 
+ *      All the methods in this class will create and use the instance local to the caller thread and they should 
+ *      always be called from the same thread, generally from jME main thread.
+ * @author Riccardo Balbo
+ */
 public class Effekseer{
-    /**
-     *         Effekseer.init(AssetManager);
-     *         Effekseer.update(float tpf);
-     *         Effekseer.render(GLRenderer,Camera,FrameBuffer);
-     */
 
     static{
         NativeLibraryLoader.registerNativeLibrary("effekseer",Platform.Linux64,"native/linux/x86_64/libEffekseerNativeForJava.so");
@@ -60,7 +60,7 @@ public class Effekseer{
         NativeLibraryLoader.loadNativeLibrary("effekseer",true);
     }
 
-    public static class EmitterState{
+    private static class EmitterState{
         boolean oldVisibleFlag;
     }
 
@@ -90,11 +90,16 @@ public class Effekseer{
         }
     };
 
+
     private static State getState() {
         return state.get();
     }
 
-    public static void init(AssetManager am) {
+
+    /**
+     * Init and return an effekseer instance
+     */
+    public static State init(AssetManager am) {
         State state=getState();
         if(state.am != am){
             if(state.am != null){
@@ -103,8 +108,12 @@ public class Effekseer{
             state.am=am;
             am.registerLoader(EffekseerLoader.class,"efkefc");
         }
+        return state;
     }
 
+    /**
+     * Destroy the effekseer instance
+     */
     public static void destroy() {
         State s=getState();
         if(s.am != null){
@@ -117,8 +126,12 @@ public class Effekseer{
         state.remove();
     }
 
-    public static void update(float tpf) {
 
+    /**
+     * Update the effekseer instance
+     * @param tpf time in seconds 
+     */
+    public static void update(float tpf) {
         State state=getState();
         float t=tpf / (1.0f / 60.0f);
         state.core.Update(t);
@@ -181,18 +194,21 @@ public class Effekseer{
         return state.sceneData;
     }
 
-    // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
-    //     render(renderer,cam,renderTarget,null,sceneDepth);
-    // }
-    // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb) {
-    //     render(renderer,cam,renderTarget,sceneFb,sceneFb.getDepthBuffer().getTexture());
-    // }
+
+    /**
+     * Select a scene for rendering and update.
+     * @param parent Only effects that are child of the parent spatial (or attached to the parent spatial itself) will be updated and rendered
+     */
     public static void beginScene(Spatial parent) {
         State state=getState();
         state.v1SpatialList.set(0,parent);
         beginScene(state.v1SpatialList);
     }
 
+    /**
+     * Select a scene for rendering and update. Same as beginScene(Spatial) but accepts multiple parents.
+     * @param parent Only effects that are child of the parent spatials (or attached to the parent spatials) will be updated and rendered
+     */
     public static void beginScene(Collection<Spatial> parents) {
         State state=getState();
         state.currentSceneParents=parents;
@@ -208,6 +224,9 @@ public class Effekseer{
         }
     }
 
+    /**
+     * This must be called after the rendering, to deselect the scene and reset temporary states.
+     */
     public static void endScene(){
         State state=getState();
         if(state.currentSceneParents==null)return;
@@ -221,9 +240,27 @@ public class Effekseer{
         }
     }
 
+
+    /**
+     * Render the scene
+     * @param renderer GLRenderer
+     * @param cam Camera
+     * @param renderTarget framebuffer to which the particles will be rendered
+     * @param sceneDepth depth of the scene, used for culling and soft particles
+     */
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
         render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f) ;
     }
+    
+     /**
+     * Render the scene
+     * @param renderer GLRenderer
+     * @param cam Camera
+     * @param renderTarget framebuffer to which the particles will be rendered
+     * @param sceneDepth depth of the scene, used for culling and soft particles
+     * @param particlesHardness lower values will make soft particles softer
+     * @param particlesContrast higher values will make the soft particles transition (gradient between soft and hard particle) shorter 
+     */
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast) {
         assert sceneDepth!=null;
    
@@ -239,16 +276,8 @@ public class Effekseer{
         gl.setBackgroundColor(ColorRGBA.BlackNoAlpha);
         gl.clearBuffers(true, true, false);
 
-
-        // HACKS HACKS
-        // if(sceneFb!=null){
-        //     GL30.glBindFramebuffer(GL30. GL_READ_FRAMEBUFFER, sceneFb.getId());
-        //     GL30.glBindFramebuffer(GL30. GL_DRAW_FRAMEBUFFER, renderTarget.getId());
-        //     GL30.glBlitFramebuffer(0,0,sceneFb.getWidth(),sceneFb.getHeight(), 0,0, renderTarget.getWidth(), renderTarget.getHeight(), GL.GL_DEPTH_BUFFER_BIT, GL.GL_NEAREST);
-        // }
         gl.setTexture(12, sceneDepth);
         gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast));
-        //
                         
         cam.getProjectionMatrix().get(state.v16,true);
         state.core.SetProjectionMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15] );
@@ -261,33 +290,33 @@ public class Effekseer{
 
     }
 
-    static int playEffect(EffekseerEffectCore e){
+    public static int playEffect(EffekseerEffectCore e){
         State state=getState();
         return state.core.Play(e);
     }
 
-    static void pauseEffect(int e,boolean v){
+    public static void pauseEffect(int e,boolean v){
         State state=getState();
          state.core.SetPaused(e,v);
     }
 
-    static  void setEffectVisibility(int e,boolean v){
+    public static  void setEffectVisibility(int e,boolean v){
         State state=getState();
          state.core.SetShown(e,v);
     }
 
-    static boolean isEffectAlive(int e){
+    public static boolean isEffectAlive(int e){
         State state=getState();
         return state.core.Exists(e);
     }
 
-    static void setDynamicInput(int e,int index,float value){
+    public static void setDynamicInput(int e,int index,float value){
         State state=getState();
         state.core.SetDynamicInput(e,index,value);
     }
 
 
-    static void setEffectTransform(int handler,Transform tr){
+    public static void setEffectTransform(int handler,Transform tr){
         State state=getState();
         state.m4.setTranslation(tr.getTranslation());
         state.m4.setRotationQuaternion(tr.getRotation());
@@ -304,7 +333,6 @@ public class Effekseer{
         while((read=is.read(chunk)) != -1) bos.write(chunk,0,read);
         return bos.toByteArray();
     }
-
 
     private static String normalizePath(String ...parts){
         String path="";
@@ -380,12 +408,24 @@ public class Effekseer{
         return info.openStream();
     }
 
-    public static EffekseerEmitterControl loadEffect(AssetManager am, String path, InputStream is) throws IOException {
+    public static EffekseerEmitterControl loadEffect(AssetManager am, String path,EffekseerEmitterControl dest) throws IOException {
+        InputStream is=openStream(am,"",path);
+        return loadEffect(am,path,is,dest);
+    }
+
+    public static EffekseerEmitterControl loadEffect(AssetManager am, String path, InputStream is,EffekseerEmitterControl dest) throws IOException {
+        byte data[]=readAll(is);
+        return loadEffect(am,path,data,dest);
+    }
+    
+    public static EffekseerEmitterControl loadEffect(AssetManager am, String path, byte[] data, EffekseerEmitterControl dest) throws IOException {
+        
+        byte bytes[]=data;
+
         String root=path.contains("/")?path.substring(0,path.lastIndexOf("/")):"";
         assert !path.endsWith("/");
 
         EffekseerEffectCore effectCore=new EffekseerEffectCore();
-        byte bytes[]=readAll(is);
         if(!effectCore.Load(bytes,bytes.length,1f)){
             throw new AssetLoadException("Can't load effect "+path);
         }
@@ -431,9 +471,14 @@ public class Effekseer{
         // Sounds?
         
         State state=getState();
-        EffekseerEmitterControl emitter= new EffekseerEmitterControl(effectCore);
-        state.emitters.put(emitter,new EmitterState());
-        return emitter;
+        if(dest==null){
+            dest= new EffekseerEmitterControl();
+        }
+        dest.setEffect(effectCore);
+        dest.setPath(path);
+        state.emitters.put(dest,new EmitterState());
+
+        return dest;
     }
 
 }
