@@ -60,6 +60,9 @@ This is intended to be used on custom render pipelines or offscreen rendering
 // Init Effekseer
 Effekseer.init(assetManager);
 
+// Select the scene to render (only child of root will be renderer). root=null to render all.
+Effekseer.beginScene(root);
+
 // Update the logic
 Effekseer.update( tpf);
 
@@ -67,7 +70,8 @@ Effekseer.update( tpf);
 // sceneDepth is the depth of the current scene - used for soft particles
 Effekseer.render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth);
 
-
+// End the scene, reset states
+Effekseer.endScene();
 
 ```
 
