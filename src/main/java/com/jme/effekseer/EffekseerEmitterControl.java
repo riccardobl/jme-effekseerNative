@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.jme3.math.Transform;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.control.AbstractControl;
 
 import Effekseer.swig.EffekseerEffectCore;
@@ -29,12 +29,26 @@ public class EffekseerEmitterControl extends AbstractControl{
     public EffekseerEmissionDriver getDriver(){
         return driver;
     }
+    
+    public boolean isChildOf(Spatial parent){
+       return  isChildOf(spatial,parent);
+    }
 
+    protected boolean isChildOf(Spatial spatial,Spatial parent){
+        if(spatial==parent)return true;
+        else return isChildOf(spatial.getParent(),parent);
+    }
+
+    public void setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        for(int i:instances){
+            Effekseer.setEffectVisibility(i, enabled);
+        }        
+    }
 
     @Override
     protected void controlUpdate(float tpf) {
-        driver.update(tpf);
-
+        
         int newHandle=driver.tryEmit(()->Effekseer.playEffect(effekt));
         if(newHandle>=0)   instances.add(newHandle);
 
@@ -52,6 +66,9 @@ public class EffekseerEmitterControl extends AbstractControl{
                 Effekseer.setEffectTransform(handle,tr);
             }
         }
+
+        driver.update(tpf);
+
     }
 
 

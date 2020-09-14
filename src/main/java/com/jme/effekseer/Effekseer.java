@@ -8,6 +8,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.Map.Entry;
 
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
@@ -25,6 +29,7 @@ import com.jme3.renderer.Renderer;
 import com.jme3.renderer.RendererException;
 import com.jme3.renderer.opengl.GL;
 import com.jme3.renderer.opengl.GLRenderer;
+import com.jme3.scene.Spatial;
 import com.jme3.system.NativeLibraryLoader;
 import com.jme3.system.Platform;
 import com.jme3.texture.FrameBuffer;
@@ -48,20 +53,25 @@ public class Effekseer{
      *         Effekseer.update(float tpf);
      *         Effekseer.render(GLRenderer,Camera,FrameBuffer);
      */
-    
+
     static{
         NativeLibraryLoader.registerNativeLibrary("effekseer",Platform.Linux64,"native/linux/x86_64/libEffekseerNativeForJava.so");
         NativeLibraryLoader.registerNativeLibrary("effekseer",Platform.Windows64,"native/windows/x86_64/EffekseerNativeForJava.dll");
         NativeLibraryLoader.loadNativeLibrary("effekseer",true);
     }
 
+    public static class EmitterState{
+        boolean oldVisibleFlag;
+    }
+
     private static class State{
         EffekseerManagerCore core;
+        Collection<Spatial> currentSceneParents;
         AssetManager am;
         final float v16[]=new float[16];
         final Matrix4f m4=new Matrix4f();
-
-        
+        final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
+        final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
 
         Texture2D sceneData;
         final Vector2f frustumNearFar=new Vector2f();
@@ -84,10 +94,10 @@ public class Effekseer{
         return state.get();
     }
 
-    public static void init(AssetManager am) {        
+    public static void init(AssetManager am) {
         State state=getState();
-        if(state.am!=am){
-            if(state.am!=null){
+        if(state.am != am){
+            if(state.am != null){
                 state.am.unregisterLoader(EffekseerLoader.class);
             }
             state.am=am;
@@ -95,42 +105,34 @@ public class Effekseer{
         }
     }
 
-    public static void destroy(){
-        State  s=getState();
-        if(s.am!=null){
+    public static void destroy() {
+        State s=getState();
+        if(s.am != null){
             s.am.unregisterLoader(EffekseerLoader.class);
             s.am=null;
         }
-        
+
         s.core.delete();
         EffekseerBackendCore.Terminate();
         state.remove();
     }
 
-    public static void update(float tpf){
+    public static void update(float tpf) {
 
-        State  state=getState();
+        State state=getState();
         float t=tpf / (1.0f / 60.0f);
         state.core.Update(t);
     }
 
-    private static Texture2D getSceneData(GLRenderer renderer,Camera cam,float particlesHardness,float particlesContrast) {
-        State  state=getState();
+    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast) {
+        State state=getState();
 
         boolean rebuildSceneData=false;
-        if(
-           state.sceneData==null
-            ||state.frustumNearFar.x!=cam.getFrustumNear()
-            ||state.frustumNearFar.y!=cam.getFrustumFar()
-            ||state.resolution.x!=cam.getWidth()
-            ||state.resolution.y!=cam.getHeight()
-            ||state.particlesHardness!=particlesHardness
-            ||state.particlesContrast!=particlesContrast
-        ){
-            rebuildSceneData=true;      
+        if(state.sceneData == null || state.frustumNearFar.x != cam.getFrustumNear() || state.frustumNearFar.y != cam.getFrustumFar() || state.resolution.x != cam.getWidth() || state.resolution.y != cam.getHeight() || state.particlesHardness != particlesHardness || state.particlesContrast != particlesContrast){
+            rebuildSceneData=true;
         }
 
-        if( rebuildSceneData){
+        if(rebuildSceneData){
             state.frustumNearFar.x=cam.getFrustumNear();
             state.frustumNearFar.y=cam.getFrustumFar();
             state.resolution.x=cam.getWidth();
@@ -138,10 +140,10 @@ public class Effekseer{
             state.particlesHardness=particlesHardness;
             state.particlesContrast=particlesContrast;
 
-            if(state.sceneData==null){
+            if(state.sceneData == null){
                 Image img=null;
                 if(renderer.getCaps().contains(Caps.FloatTexture)){
-                    ByteBuffer data=BufferUtils.createByteBuffer(2/*w*/ *1 /*h*/ * 3 /*components*/ * 4 /*B x component*/ );
+                    ByteBuffer data=BufferUtils.createByteBuffer(2/*w*/ * 1 /*h*/ * 3 /*components*/ * 4 /*B x component*/ );
                     img=new Image(Format.RGB32F,2,1,data,ColorSpace.Linear);
                 }else{
                     ByteBuffer data=BufferUtils.createByteBuffer(2/*w*/ * 1 /*h*/ * 3 /*components*/ * 2 /*B x component*/ );
@@ -176,8 +178,8 @@ public class Effekseer{
             state.sceneData.getImage().setUpdateNeeded();
         }
 
-		return state. sceneData;
-	}
+        return state.sceneData;
+    }
 
     // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
     //     render(renderer,cam,renderTarget,null,sceneDepth);
@@ -185,6 +187,39 @@ public class Effekseer{
     // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb) {
     //     render(renderer,cam,renderTarget,sceneFb,sceneFb.getDepthBuffer().getTexture());
     // }
+    public static void beginScene(Spatial parent) {
+        State state=getState();
+        state.v1SpatialList.set(0,parent);
+        beginScene(state.v1SpatialList);
+    }
+
+    public static void beginScene(Collection<Spatial> parents) {
+        State state=getState();
+        state.currentSceneParents=parents;
+        if(parents==null)return;        
+        for(Entry<EffekseerEmitterControl,EmitterState> e:state.emitters.entrySet()){
+            EffekseerEmitterControl emitter=e.getKey();
+            EmitterState emitterState=e.getValue();            
+            emitterState.oldVisibleFlag=emitter.isEnabled();
+            boolean currentFlag= parents.stream().anyMatch(p->emitter.isChildOf(p));  
+            if(emitter.isEnabled()!=currentFlag){
+                emitter.setEnabled(currentFlag);
+            }
+        }
+    }
+
+    public static void endScene(){
+        State state=getState();
+        if(state.currentSceneParents==null)return;
+        for(Entry<EffekseerEmitterControl,EmitterState> e:state.emitters.entrySet()){
+            EffekseerEmitterControl emitter=e.getKey();
+            EmitterState emitterState=e.getValue();
+            if(emitter.isEnabled()!=emitterState.oldVisibleFlag){
+                emitter.setEnabled(emitterState.oldVisibleFlag);               
+                emitterState.oldVisibleFlag=emitter.isEnabled();
+            }
+        }
+    }
 
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
         render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f) ;
@@ -395,8 +430,10 @@ public class Effekseer{
 
         // Sounds?
         
-        
-        return new EffekseerEmitterControl(effectCore);
+        State state=getState();
+        EffekseerEmitterControl emitter= new EffekseerEmitterControl(effectCore);
+        state.emitters.put(emitter,new EmitterState());
+        return emitter;
     }
 
 }
