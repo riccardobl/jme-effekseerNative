@@ -21,12 +21,18 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     protected Map<Integer,Callback > instances=new HashMap<Integer,Callback >();
     protected Function< Float,Callback> emitFunction=EffekseerEmitterEmitFunctions.emitLoop(1,0f, 1f,1f);
     protected BiFunction< Integer,Spatial,Transform> shapeFunction=EffekseerEmitterShapeFunctions.pointFollowingSpatial();
+    protected BiConsumer< Integer,DynamicInputSetterFun> dynamicInputSetter=(handle,set)->{};
     
     protected float time=0;
 
     @Override
     public void update(float tpf) {
         time+=tpf;
+    }
+    
+    public EffekseerEmissionDriverGeneric dynamicInputsSupplier(BiConsumer< Integer,DynamicInputSetterFun>  f){
+        this.dynamicInputSetter=f;
+        return this;
     }
 
     public EffekseerEmissionDriverGeneric emitFunction(Function< Float,Callback>  f){
@@ -40,10 +46,10 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     }
 
     @Override
-    public int tryEmit(Supplier<Integer> emitInstanceAndGetHandle) {
+    public int tryEmit(EmitFun emitInstanceAndGetHandle) {
         Callback callback=emitFunction.apply(time);
         if(callback!=null){
-            int handle=emitInstanceAndGetHandle.get();
+            int handle=emitInstanceAndGetHandle.emit();
             callback.call(CallbackType.SET_HANDLE, handle);
             instances.put(handle,callback);
             return handle;
@@ -62,6 +68,11 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     @Override
     public Transform getInstanceTransform(int handle, Spatial sp) {
         return shapeFunction.apply(handle,sp);
+    }
+
+    @Override
+    public void setDynamicInputs(int handle,DynamicInputSetterFun set) {
+
     }
     
 }

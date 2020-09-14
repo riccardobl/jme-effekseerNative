@@ -41,6 +41,10 @@ public class EffekseerTest extends SimpleApplication{
         effekt.setDriver(new EffekseerEmissionDriverGeneric()
             .emitFunction(EffekseerEmitterEmitFunctions.emitLoop(1,0,0f,0f))
             .shapeFunction(EffekseerEmitterShapeFunctions.pointFollowingSpatial())
+            .dynamicInputsSupplier((handle,setter)->{
+                // Set input 0 = 10
+                setter.set(0,10);
+            })
         );
         sp.addControl(effekt);
 

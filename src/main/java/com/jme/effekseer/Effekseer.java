@@ -246,9 +246,9 @@ public class Effekseer{
         return state.core.Exists(e);
     }
 
-    static boolean setDynamicInput(int e,int index,float value){
+    static void setDynamicInput(int e,int index,float value){
         State state=getState();
-        return state.core.SetDynamicInput(e,index,value);
+        state.core.SetDynamicInput(e,index,value);
     }
 
 

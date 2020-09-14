@@ -45,6 +45,9 @@ public class EffekseerEmitterControl extends AbstractControl{
                 instances.remove(i);
                 i--;
             }else{
+                driver.setDynamicInputs(handle, (index,value)->{
+                    Effekseer.setDynamicInput(handle,index, value);
+                });
                 Transform tr=driver.getInstanceTransform(handle, spatial);
                 Effekseer.setEffectTransform(handle,tr);
             }
