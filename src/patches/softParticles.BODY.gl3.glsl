@@ -1,1 +1,0 @@
-     _softParticles(_entryPointOutput);

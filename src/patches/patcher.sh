@@ -20,7 +20,7 @@ for f in $patchedFiles;
 do 
     f=${f:6}
     echo "Complete patch in $f"
-    replace "$f" "SOFT_PARTICLES.HEADER.gl3" "$cdir/softParticles.HEADER.gl3.glsl"
-    replace "$f" "SOFT_PARTICLES.BODY.gl3" "$cdir/softParticles.BODY.gl3.glsl"
+    replace "$f" "SOFT_PARTICLES.HEADER.gl" "$cdir/softParticles.HEADER.gl.glsl"
+    replace "$f" "SOFT_PARTICLES.BODY.gl" "$cdir/softParticles.BODY.gl.glsl"
 done
 unset IFS

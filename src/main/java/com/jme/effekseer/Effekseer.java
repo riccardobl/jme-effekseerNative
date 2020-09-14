@@ -15,11 +15,14 @@ import com.jme3.asset.AssetLoadException;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Matrix4f;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.Camera;
+import com.jme3.renderer.Caps;
 import com.jme3.renderer.Renderer;
+import com.jme3.renderer.RendererException;
 import com.jme3.renderer.opengl.GL;
 import com.jme3.renderer.opengl.GLRenderer;
 import com.jme3.system.NativeLibraryLoader;
@@ -58,10 +61,12 @@ public class Effekseer{
         final float v16[]=new float[16];
         final Matrix4f m4=new Matrix4f();
 
+        
 
         Texture2D sceneData;
         final Vector2f frustumNearFar=new Vector2f();
-    
+        final Vector2f resolution=new Vector2f();
+        float particlesHardness,particlesContrast;
     }
 
     private static ThreadLocal<State> state=new ThreadLocal<State>(){
@@ -109,41 +114,82 @@ public class Effekseer{
         state.core.Update(t);
     }
 
-    private static Texture2D getSceneData(Camera cam) {
+    private static Texture2D getSceneData(GLRenderer renderer,Camera cam,float particlesHardness,float particlesContrast) {
         State  state=getState();
 
+        boolean rebuildSceneData=false;
         if(
-           
-            state.frustumNearFar.x!=cam.getFrustumNear()
+           state.sceneData==null
+            ||state.frustumNearFar.x!=cam.getFrustumNear()
             ||state.frustumNearFar.y!=cam.getFrustumFar()
+            ||state.resolution.x!=cam.getWidth()
+            ||state.resolution.y!=cam.getHeight()
+            ||state.particlesHardness!=particlesHardness
+            ||state.particlesContrast!=particlesContrast
         ){
-           state. sceneData=null;
-           
+            rebuildSceneData=true;      
         }
-		ByteBuffer data=BufferUtils.createByteBuffer(1*4*2);
 
-        if(  state. sceneData==null       ){
+        if( rebuildSceneData){
             state.frustumNearFar.x=cam.getFrustumNear();
             state.frustumNearFar.y=cam.getFrustumFar();
-            data.putFloat( state.frustumNearFar.x);
-            data.putFloat(state.frustumNearFar.y);
-            Image img=new Image(Format.RG32F, 1, 1, data,ColorSpace.Linear);
-            state.sceneData=new Texture2D(img);
+            state.resolution.x=cam.getWidth();
+            state.resolution.y=cam.getHeight();
+            state.particlesHardness=particlesHardness;
+            state.particlesContrast=particlesContrast;
 
+            if(state.sceneData==null){
+                Image img=null;
+                if(renderer.getCaps().contains(Caps.FloatTexture)){
+                    ByteBuffer data=BufferUtils.createByteBuffer(2/*w*/ *1 /*h*/ * 3 /*components*/ * 4 /*B x component*/ );
+                    img=new Image(Format.RGB32F,2,1,data,ColorSpace.Linear);
+                }else{
+                    ByteBuffer data=BufferUtils.createByteBuffer(2/*w*/ * 1 /*h*/ * 3 /*components*/ * 2 /*B x component*/ );
+                    img=new Image(Format.RGB16F_to_RGB111110F,2,1,data,ColorSpace.Linear);
+                }
+                state.sceneData=new Texture2D(img);
+            }
+
+            if(renderer.getCaps().contains(Caps.FloatTexture)){
+                ByteBuffer data=state.sceneData.getImage().getData(0);
+                data.rewind();
+                data.putFloat(state.resolution.x);
+                data.putFloat(state.resolution.y);
+                data.putFloat(particlesHardness);
+                data.putFloat(state.frustumNearFar.x);
+                data.putFloat(state.frustumNearFar.y);
+                data.putFloat(particlesContrast);
+                data.rewind();
+            }else if(renderer.getCaps().contains(Caps.PackedFloatTexture)){
+                ByteBuffer data=state.sceneData.getImage().getData(0);
+                data.rewind();
+                data.putShort(FastMath.convertFloatToHalf(state.resolution.x));
+                data.putShort(FastMath.convertFloatToHalf(state.resolution.y));
+                data.putShort(FastMath.convertFloatToHalf(particlesHardness));
+                data.putShort(FastMath.convertFloatToHalf(state.frustumNearFar.x));
+                data.putShort(FastMath.convertFloatToHalf(state.frustumNearFar.y));
+                data.putShort(FastMath.convertFloatToHalf(particlesContrast));
+                data.rewind();
+            }else{
+                throw new RendererException("Unsupported Platform. FloatTexture or PackedFloatTexture required for jme-effekseerNative.");
+            }
+            state.sceneData.getImage().setUpdateNeeded();
         }
 
 		return state. sceneData;
 	}
 
+    // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
+    //     render(renderer,cam,renderTarget,null,sceneDepth);
+    // }
+    // public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb) {
+    //     render(renderer,cam,renderTarget,sceneFb,sceneFb.getDepthBuffer().getTexture());
+    // }
+
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
-        render(renderer,cam,renderTarget,null,sceneDepth);
+        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f) ;
     }
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb) {
-        render(renderer,cam,renderTarget,sceneFb,sceneFb.getDepthBuffer().getTexture());
-    }
-
-
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb,Texture sceneDepth) {
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast) {
         assert sceneDepth!=null;
    
         State  state=getState();
@@ -160,13 +206,13 @@ public class Effekseer{
 
 
         // HACKS HACKS
-        if(sceneFb!=null){
-            GL30.glBindFramebuffer(GL30. GL_READ_FRAMEBUFFER, sceneFb.getId());
-            GL30.glBindFramebuffer(GL30. GL_DRAW_FRAMEBUFFER, renderTarget.getId());
-            GL30.glBlitFramebuffer(0,0,sceneFb.getWidth(),sceneFb.getHeight(), 0,0, renderTarget.getWidth(), renderTarget.getHeight(), GL.GL_DEPTH_BUFFER_BIT, GL.GL_NEAREST);
-        }
+        // if(sceneFb!=null){
+        //     GL30.glBindFramebuffer(GL30. GL_READ_FRAMEBUFFER, sceneFb.getId());
+        //     GL30.glBindFramebuffer(GL30. GL_DRAW_FRAMEBUFFER, renderTarget.getId());
+        //     GL30.glBlitFramebuffer(0,0,sceneFb.getWidth(),sceneFb.getHeight(), 0,0, renderTarget.getWidth(), renderTarget.getHeight(), GL.GL_DEPTH_BUFFER_BIT, GL.GL_NEAREST);
+        // }
         gl.setTexture(12, sceneDepth);
-        gl.setTexture(13, getSceneData(cam));
+        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast));
         //
                         
         cam.getProjectionMatrix().get(state.v16,true);
@@ -199,6 +245,12 @@ public class Effekseer{
         State state=getState();
         return state.core.Exists(e);
     }
+
+    static boolean setDynamicInput(int e,int index,float value){
+        State state=getState();
+        return state.core.SetDynamicInput(e,index,value);
+    }
+
 
     static void setEffectTransform(int handler,Transform tr){
         State state=getState();

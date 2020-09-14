@@ -61,7 +61,7 @@ index 00f753c6..a3542ccd 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -69,7 +69,7 @@ index 00f753c6..a3542ccd 100644
      Input.Others = _VSPS_Others;
      vec4 _467 = _main(Input);
      _entryPointOutput = _467;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -99,7 +99,7 @@ index 7c8ab738..5cfb184c 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -107,7 +107,7 @@ index 7c8ab738..5cfb184c 100644
      Input.Others = _VSPS_Others;
      vec4 _542 = _main(Input);
      _entryPointOutput = _542;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -174,7 +174,7 @@ index c9e89ef4..a37151ac 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -182,7 +182,7 @@ index c9e89ef4..a37151ac 100644
      Input.Color = _VSPS_Color;
      vec4 _65 = _main(Input);
      _entryPointOutput = _65;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -212,7 +212,7 @@ index 92de408e..cc10c57f 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -220,7 +220,7 @@ index 92de408e..cc10c57f 100644
      Input.PosR = _VSPS_PosR;
      vec4 _182 = _main(Input);
      _entryPointOutput = _182;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -249,7 +249,7 @@ index 5e4126c1..b49795e2 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -257,7 +257,7 @@ index 5e4126c1..b49795e2 100644
      Input.ScreenUV = _VSPS_ScreenUV;
      vec4 _158 = _main(Input);
      _entryPointOutput = _158;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -287,7 +287,7 @@ index 2989860d..50e582bb 100644
  #extension GL_ARB_shading_language_420pack : require
  #endif
  
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
 +
  struct PS_Input
  {
@@ -296,7 +296,7 @@ index 2989860d..50e582bb 100644
      Input.UV = _VSPS_UV;
      vec4 _65 = _main(Input);
      _entryPointOutput = _65;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
  }
  
  )";
@@ -325,7 +325,7 @@ index 3f45b4af..bbc5defc 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -333,7 +333,7 @@ index 3f45b4af..bbc5defc 100644
      Input.Others = _VSPS_Others;
      vec4 _413 = _main(Input);
      _entryPointOutput = _413;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -363,7 +363,7 @@ index a1163aac..e9d85be0 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -371,7 +371,7 @@ index a1163aac..e9d85be0 100644
      Input.Others = _VSPS_Others;
      vec4 _467 = _main(Input);
      _entryPointOutput = _467;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  
@@ -401,7 +401,7 @@ index b89d49af..24d0ab60 100644
  #ifdef GL_ARB_shading_language_420pack
  #extension GL_ARB_shading_language_420pack : require
  #endif
-+SOFT_PARTICLES.HEADER.gl
++SOFT_PARTICLES.HEADER.gl3
  
  struct PS_Input
  {
@@ -409,7 +409,7 @@ index b89d49af..24d0ab60 100644
      Input.Others = _VSPS_Others;
      vec4 _466 = _main(Input);
      _entryPointOutput = _466;
-+    SOFT_PARTICLES.BODY.gl
++    SOFT_PARTICLES.BODY.gl3
 +
  }
  

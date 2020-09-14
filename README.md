@@ -67,9 +67,6 @@ Effekseer.update( tpf);
 // sceneDepth is the depth of the current scene - used for soft particles
 Effekseer.render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth);
 
-// Render - Alt
-// sceneFb is the scene FrameBuffer, when provided the depthbuffer will be blitted into the renderTarget before rendering the particles - used for depth testing
-Effekseer.render(Renderer renderer,Camera cam,FrameBuffer renderTarget,FrameBuffer sceneFb,Texture sceneDepth) 
 
 
 ```

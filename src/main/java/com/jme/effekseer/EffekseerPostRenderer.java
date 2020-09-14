@@ -58,7 +58,7 @@ public class EffekseerPostRenderer extends Filter{
     @Override
     protected void postFrame(RenderManager renderManager, ViewPort viewPort, FrameBuffer prevFilterBuffer, FrameBuffer sceneBuffer) {
         Camera cam=renderManager.getCurrentCamera();
-        Effekseer.render(renderManager.getRenderer(), cam, getRenderTarget(cam.getWidth(),cam.getHeight(),sceneBuffer.getSamples()),sceneBuffer );
+        Effekseer.render(renderManager.getRenderer(), cam, getRenderTarget(cam.getWidth(),cam.getHeight(),sceneBuffer.getSamples()),sceneBuffer.getDepthBuffer() .getTexture());
     }
 
     @Override
