@@ -24,7 +24,7 @@ public class EffekseerTestGUI extends SimpleApplication{
         getGuiViewPort().addProcessor(fpp);
 
         // Add Effekseer Renderer
-        fpp.addFilter(new EffekseerPostRenderer(getAssetManager(), false /*Disable depth test from the scene*/));
+        fpp.addFilter(new EffekseerPostRenderer(getAssetManager()));
 
         // Load an effect
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Flame.efkefc");

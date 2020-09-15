@@ -262,6 +262,10 @@ public class Effekseer{
         }
     }
 
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
+        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,false) ;
+
+    }
 
     /**
      * Render the scene
@@ -270,8 +274,8 @@ public class Effekseer{
      * @param renderTarget framebuffer to which the particles will be rendered
      * @param sceneDepth depth of the scene, used for culling and soft particles
      */
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
-        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f) ;
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean is2D) {
+        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,is2D) ;
     }
     
      /**
@@ -283,7 +287,7 @@ public class Effekseer{
      * @param particlesHardness lower values will make soft particles softer
      * @param particlesContrast higher values will make the soft particles transition (gradient between soft and hard particle) shorter 
      */
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast) {
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast,boolean is2d) {
         boolean hasDepth=true;
         if(sceneDepth==null){
             sceneDepth=getFakeDepth();
@@ -304,7 +308,7 @@ public class Effekseer{
         gl.setTexture(12, sceneDepth);
         gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast,hasDepth));
                         
-        if(cam.isParallelProjection()){
+        if(is2d){
             state.core.SetViewProjectionMatrixWithSimpleWindow(cam.getWidth(),cam.getHeight());
         }else{
             cam.getProjectionMatrix().get(state.v16,true);

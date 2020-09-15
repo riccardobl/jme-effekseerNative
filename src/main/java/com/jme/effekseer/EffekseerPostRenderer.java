@@ -1,8 +1,11 @@
 package com.jme.effekseer;
 
+import java.lang.reflect.Field;
+
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.post.Filter;
+import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -18,13 +21,19 @@ public class EffekseerPostRenderer extends Filter{
     protected FrameBuffer renderTarget;
     protected Texture2D particlesColor,particlesDepth;
     protected float tpf;
-    protected boolean needsDepth=true;
-    public EffekseerPostRenderer(AssetManager manager,boolean withDepth){
+    protected Boolean needsDepth=null;
+    protected Boolean is2D=null;
+
+    public EffekseerPostRenderer(AssetManager manager,Boolean withDepth){
+        this(manager,withDepth,null);
+    }
+    public EffekseerPostRenderer(AssetManager manager,Boolean withDepth,Boolean is2D){
         Effekseer.init(manager);
-        needsDepth=withDepth;
+        this.needsDepth=withDepth;
+        this.is2D=is2D;
     }
     public EffekseerPostRenderer(AssetManager manager){
-        this(manager,true);
+        this(manager,null);
     }
     
 
@@ -32,11 +41,52 @@ public class EffekseerPostRenderer extends Filter{
         Effekseer.setAsync(nThreads);
     }
 
+    protected void preInit(ViewPort vp){
+        boolean detectGui=false;
+        if(needsDepth==null){
+            needsDepth=true;
+            detectGui=true;
+        }
+        if(is2D==null){
+            is2D=false;
+            detectGui=true;
+        }
+        if(detectGui&&vp!=null){
+            if(vp.getName().equals("Gui Default")){ // Detect when attached to default guiViewPort in jme.
+                is2D=true;
+                needsDepth=false;
+                System.out.println("Detected default Gui View Port");
+            }
+        }
+    }
+
+
+    protected void setProcessor(FilterPostProcessor proc) {
+        super.setProcessor(proc);
+        Field fields[]=proc.getClass().getDeclaredFields();        
+        ViewPort vp=null;
+        try{
+            for(Field f:fields){
+                if(ViewPort.class.isAssignableFrom(f.getType())){
+                    f.setAccessible(true);
+                    vp=(ViewPort)f.get(proc);
+                    System.out.println("Found viewport "+vp!=null?vp.getName():vp);
+                    break;
+                }
+            }
+        }catch(Exception e){
+            System.err.println(e);
+        }
+        if(vp!=null){
+            preInit(vp);            
+        }
+    }
 
     @Override
     protected void initFilter(AssetManager manager, RenderManager renderManager, ViewPort vp, int w, int h) {
         assert manager!=null;
         this.material= new Material(manager,"Effekseer/Composer.j3md");
+        preInit(vp);
     }
     
     @Override
@@ -69,19 +119,23 @@ public class EffekseerPostRenderer extends Filter{
         return renderTarget;
     }
 
+   
+
     @Override
     protected void postFrame(RenderManager renderManager, ViewPort viewPort, FrameBuffer prevFilterBuffer, FrameBuffer sceneBuffer) {
+        
         Camera cam=renderManager.getCurrentCamera();
         Effekseer.beginScene(viewPort.getScenes());
         Effekseer.update(tpf);
         Effekseer.render(renderManager.getRenderer(), cam, getRenderTarget(cam.getWidth(),cam.getHeight(),sceneBuffer.getSamples()),
-            isRequiresDepthTexture()?sceneBuffer.getDepthBuffer() .getTexture():null
+            isRequiresDepthTexture()?sceneBuffer.getDepthBuffer() .getTexture():null,is2D
         );
         Effekseer.endScene();        
     }
 
     @Override
     protected boolean isRequiresDepthTexture() {
+        preInit(null);
         return needsDepth;
     }
 
