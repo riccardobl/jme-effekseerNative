@@ -4,7 +4,7 @@ function replace {
     source=$1
     search=$2
     content=$3
-    php -r "file_put_contents('$source', str_replace('$search', file_get_contents('$content') , file_get_contents('$source')));"
+    php -r "file_put_contents(realpath('$source'), str_replace('$search', file_get_contents(realpath('$content')) , file_get_contents(realpath('$source'))));"
 
 }
 cdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
