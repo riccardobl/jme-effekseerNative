@@ -39,8 +39,6 @@ public class EffekseerTest extends SimpleApplication{
         flyCam.setMoveSpeed(10);
         viewPort.setBackgroundColor(ColorRGBA.Black);
         
-
-
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Flame.efkefc");
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()

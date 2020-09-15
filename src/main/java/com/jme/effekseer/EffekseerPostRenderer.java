@@ -18,9 +18,13 @@ public class EffekseerPostRenderer extends Filter{
     protected FrameBuffer renderTarget;
     protected Texture2D particlesColor,particlesDepth;
     protected float tpf;
-
-    public EffekseerPostRenderer(AssetManager manager){
+    protected boolean needsDepth=true;
+    public EffekseerPostRenderer(AssetManager manager,boolean withDepth){
         Effekseer.init(manager);
+        needsDepth=withDepth;
+    }
+    public EffekseerPostRenderer(AssetManager manager){
+        this(manager,true);
     }
     
 
@@ -70,13 +74,15 @@ public class EffekseerPostRenderer extends Filter{
         Camera cam=renderManager.getCurrentCamera();
         Effekseer.beginScene(viewPort.getScenes());
         Effekseer.update(tpf);
-        Effekseer.render(renderManager.getRenderer(), cam, getRenderTarget(cam.getWidth(),cam.getHeight(),sceneBuffer.getSamples()),sceneBuffer.getDepthBuffer() .getTexture());
+        Effekseer.render(renderManager.getRenderer(), cam, getRenderTarget(cam.getWidth(),cam.getHeight(),sceneBuffer.getSamples()),
+            isRequiresDepthTexture()?sceneBuffer.getDepthBuffer() .getTexture():null
+        );
         Effekseer.endScene();        
     }
 
     @Override
     protected boolean isRequiresDepthTexture() {
-        return true;
+        return needsDepth;
     }
 
 

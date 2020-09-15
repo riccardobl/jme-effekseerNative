@@ -73,7 +73,8 @@ public class Effekseer{
         final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
         final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
 
-        Texture2D sceneData;
+        boolean hasDepth;
+        Texture2D sceneData,fakeDepth;
         final Vector2f frustumNearFar=new Vector2f();
         final Vector2f resolution=new Vector2f();
         float particlesHardness,particlesContrast;
@@ -141,11 +142,11 @@ public class Effekseer{
         state.core.Update(t);
     }
 
-    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast) {
+    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast,boolean hasDepth) {
         State state=getState();
 
         boolean rebuildSceneData=false;
-        if(state.sceneData == null || state.frustumNearFar.x != cam.getFrustumNear() || state.frustumNearFar.y != cam.getFrustumFar() || state.resolution.x != cam.getWidth() || state.resolution.y != cam.getHeight() || state.particlesHardness != particlesHardness || state.particlesContrast != particlesContrast){
+        if(state.sceneData == null ||state.hasDepth!=hasDepth ||state.frustumNearFar.x != cam.getFrustumNear() || state.frustumNearFar.y != cam.getFrustumFar() || state.resolution.x != cam.getWidth() || state.resolution.y != cam.getHeight() || state.particlesHardness != particlesHardness || state.particlesContrast != particlesContrast){
             rebuildSceneData=true;
         }
 
@@ -156,6 +157,7 @@ public class Effekseer{
             state.resolution.y=cam.getHeight();
             state.particlesHardness=particlesHardness;
             state.particlesContrast=particlesContrast;
+            state.hasDepth=hasDepth;
 
             if(state.sceneData == null){
                 Image img=null;
@@ -175,8 +177,8 @@ public class Effekseer{
                 data.putFloat(state.resolution.x);
                 data.putFloat(state.resolution.y);
                 data.putFloat(particlesHardness);
-                data.putFloat(state.frustumNearFar.x);
-                data.putFloat(state.frustumNearFar.y);
+                data.putFloat(state.hasDepth?state.frustumNearFar.x:-1);
+                data.putFloat(state.hasDepth?state.frustumNearFar.y:-1);
                 data.putFloat(particlesContrast);
                 data.rewind();
             }else if(renderer.getCaps().contains(Caps.PackedFloatTexture)){
@@ -185,8 +187,8 @@ public class Effekseer{
                 data.putShort(FastMath.convertFloatToHalf(state.resolution.x));
                 data.putShort(FastMath.convertFloatToHalf(state.resolution.y));
                 data.putShort(FastMath.convertFloatToHalf(particlesHardness));
-                data.putShort(FastMath.convertFloatToHalf(state.frustumNearFar.x));
-                data.putShort(FastMath.convertFloatToHalf(state.frustumNearFar.y));
+                data.putShort(state.hasDepth?FastMath.convertFloatToHalf(state.frustumNearFar.x):-1);
+                data.putShort(state.hasDepth?FastMath.convertFloatToHalf(state.frustumNearFar.y):-1);
                 data.putShort(FastMath.convertFloatToHalf(particlesContrast));
                 data.rewind();
             }else{
@@ -198,6 +200,22 @@ public class Effekseer{
         return state.sceneData;
     }
 
+
+    private static Texture2D getFakeDepth() {
+        State state=getState();
+        if(state.fakeDepth == null){
+            ByteBuffer data=BufferUtils.createByteBuffer(1/*w*/ * 1 /*h*/ * 1 /*components*/ * 1 /*B x component*/ );
+            data.put((byte)255);
+            data.rewind();
+            Image img=new Image(Format.Luminance8,1,1,data,ColorSpace.Linear);
+            state.fakeDepth=new Texture2D(img);
+        }
+        return state.fakeDepth;
+    }
+
+    public static void beginScene() {
+        beginScene((Collection<Spatial>)null);
+    }
 
     /**
      * Select a scene for rendering and update.
@@ -266,8 +284,11 @@ public class Effekseer{
      * @param particlesContrast higher values will make the soft particles transition (gradient between soft and hard particle) shorter 
      */
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast) {
-        assert sceneDepth!=null;
-   
+        boolean hasDepth=true;
+        if(sceneDepth==null){
+            sceneDepth=getFakeDepth();
+            hasDepth=false;
+        }
         State  state=getState();
       
         if(!(renderer instanceof GLRenderer)){
@@ -281,14 +302,17 @@ public class Effekseer{
         gl.clearBuffers(true, true, false);
 
         gl.setTexture(12, sceneDepth);
-        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast));
+        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast,hasDepth));
                         
-        cam.getProjectionMatrix().get(state.v16,true);
-        state.core.SetProjectionMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15] );
-
-        cam.getViewMatrix().get(state.v16,true);
-        state.core.SetCameraMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15]  );
-        
+        if(cam.isParallelProjection()){
+            state.core.SetViewProjectionMatrixWithSimpleWindow(cam.getWidth(),cam.getHeight());
+        }else{
+            cam.getProjectionMatrix().get(state.v16,true);
+            state.core.SetProjectionMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15] );
+            
+            cam.getViewMatrix().get(state.v16,true);
+            state.core.SetCameraMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15]  );
+        }
         state.core.DrawBack();
         state.core.DrawFront();
 
@@ -322,10 +346,11 @@ public class Effekseer{
 
     public static void setEffectTransform(int handler,Transform tr){
         State state=getState();
+
         state.m4.setTranslation(tr.getTranslation());
         state.m4.setRotationQuaternion(tr.getRotation());
         state.m4.setScale(tr.getScale());
-        
+
         state.m4.get(state.v16, true);
         state.core.SetEffectTransformMatrix(handler, state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11] );
     }
