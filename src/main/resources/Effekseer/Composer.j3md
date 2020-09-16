@@ -11,8 +11,8 @@ MaterialDef  Composer {
     }
 
     Technique {
-        VertexShader GLSL150 :   Effekseer/Composer.vert
-        FragmentShader GLSL150 : Effekseer/Composer.frag
+        VertexShader  GLSL100 GLSL150:   Effekseer/Composer.vert
+        FragmentShader  GLSL100 GLSL150 : Effekseer/Composer.frag
 
         WorldParameters {
         }

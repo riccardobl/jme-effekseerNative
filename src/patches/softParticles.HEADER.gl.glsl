@@ -35,7 +35,7 @@ void _softParticles(inout vec4 color){
     vec2 frustumNearFar=txData2.rg;
     float hardnessContrast=txData2.b;
 
-    if(frustumNearFar.x<=0&&frustumNearFar.y<=0)return;
+    if(frustumNearFar.x<=0.0&&frustumNearFar.y<=0.0)return;
 
     vec2 screenUv=gl_FragCoord.xy/resolution;
     float sceneDepthV=linearizeDepth(texture2D(_sceneDepth,screenUv).r,frustumNearFar);
