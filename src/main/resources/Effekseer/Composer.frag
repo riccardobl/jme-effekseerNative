@@ -2,23 +2,22 @@
 #import "Common/ShaderLib/MultiSample.glsllib"
 
 
-uniform COLORTEXTURE m_Texture;
-
-uniform COLORTEXTURE m_ParticlesColor;
-
 
 varying vec2 texCoord;
 
-
-
+uniform COLORTEXTURE m_Texture;
+#ifdef BLEND
+uniform COLORTEXTURE m_BlendTexture;
+#endif
 void main() {
-      vec4 sceneColor = getColor(m_Texture, texCoord);
-      vec4 particlesColor = getColor(m_ParticlesColor, texCoord);
-      
+      vec4 sceneColor = getColor( m_Texture,texCoord);
       gl_FragColor=sceneColor;
-
-      gl_FragColor.rgb=mix(gl_FragColor.rgb,particlesColor.rgb,particlesColor.a);
-      gl_FragColor.a+=particlesColor.a;
-      gl_FragColor.a=clamp(gl_FragColor.a,0.,1.);
+      #ifdef BLEND
+         vec4 b = getColor( m_BlendTexture,texCoord);
+         float a=clamp(b.a,0.,1.);
+         gl_FragColor.rgb=mix(gl_FragColor.rgb,b.rgb,a);
+         gl_FragColor.a+=a;
+         gl_FragColor.a=clamp(gl_FragColor.a,0.,1.);         
+      #endif
 }
 

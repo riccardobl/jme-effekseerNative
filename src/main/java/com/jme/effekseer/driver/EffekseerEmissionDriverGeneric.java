@@ -124,8 +124,8 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     }
 
     @Override
-    public Transform getInstanceTransform(int handle, Spatial sp) {
-        return shape.getTransform(handle,sp);
+    public Transform getInstanceTransform(int handle, Spatial sp,float scale) {
+        return shape.getTransform(handle,sp,scale);
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.math.Transform;
 import com.jme3.scene.Spatial;
+import com.jme3.util.TempVars;
 import com.jme3.util.clone.Cloner;
 
 public class EffekseerPointFollowingSpatialShape implements EffekseerEmitterShape{
@@ -21,9 +22,14 @@ public class EffekseerPointFollowingSpatialShape implements EffekseerEmitterShap
 
     }
 
+
+    private Transform tmp_tr=new Transform();
+
     @Override
-    public Transform getTransform(int handler, Spatial sp) {
-        return sp.getWorldTransform();
+    public Transform getTransform(int handler, Spatial sp,float scale) {
+        tmp_tr.set(sp.getWorldTransform());
+        tmp_tr.getScale().multLocal(scale);
+        return tmp_tr;
     }
 
     @Override

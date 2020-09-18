@@ -1,0 +1,1 @@
+     SRGB2LINEAR(_SP_OUTPUT);

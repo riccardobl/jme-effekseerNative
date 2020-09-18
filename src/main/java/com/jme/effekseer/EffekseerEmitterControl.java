@@ -32,6 +32,8 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     protected transient final Collection<Integer> instancesRO=Collections.unmodifiableCollection(instances);
     protected transient   EffekseerEffectCore effekt;
     protected String effektPath;
+    protected boolean play=true;
+    protected float scale=1f;
 
     protected EffekseerEmissionDriver driver=new EffekseerEmissionDriverGeneric();
 
@@ -67,6 +69,27 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
             return isChildOf(nextS,parent);
         }
     }
+    public void setScale(float v){
+        scale=v;
+    }
+
+    public void stop(){
+        this.instances.stream().forEach(i->Effekseer.stopEffect(i));
+        this.instances.clear();
+        play=false;
+    }
+
+    public void pause(){
+        this.instances.stream().forEach(i->Effekseer.pauseEffect(i,true));
+        play=false;
+    }
+
+
+    public void play(){
+        this.instances.stream().forEach(i->Effekseer.pauseEffect(i,false));
+        play=true;
+    }
+
 
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
@@ -78,7 +101,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
 
     @Override
     protected void controlUpdate(float tpf) {
-        
+        if(!play)return;
         int newHandle=driver.tryEmit(()->Effekseer.playEffect(effekt));
         if(newHandle>=0)   instances.add(newHandle);
 
@@ -92,7 +115,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
                 driver.setDynamicInputs(handle, (index,value)->{
                     Effekseer.setDynamicInput(handle,index, value);
                 });
-                Transform tr=driver.getInstanceTransform(handle, spatial);
+                Transform tr=driver.getInstanceTransform(handle, spatial,scale);
                 Effekseer.setEffectTransform(handle,tr);
             }
         }
@@ -115,12 +138,16 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         OutputCapsule c=ex.getCapsule(this);
         c.write(effektPath,"path",null);    
         c.write(driver,"driver",null);    
+        c.write(play,"playing",true);    
+        c.write(scale,"scale",1f);
     }
 
     public  void read(JmeImporter im) throws IOException{
         InputCapsule c=im.getCapsule(this);
         effektPath=c.readString("path", null);
         driver=(EffekseerEmissionDriver)c.readSavable("driver",null);
+        play=c.readBoolean("playing",true);    
+        scale=c.readFloat("playing",1f);    
         if(effektPath!=null)Effekseer.loadEffect(im.getAssetManager(),effektPath,this);
     }
 
@@ -129,6 +156,8 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         EffekseerEmitterControl e= new EffekseerEmitterControl();
         e.setEffect(effekt);
         e.setPath(effektPath);
+        e.setScale(scale);
+        e.play=play;        
         e.driver=driver;
         return e;
     }     
@@ -138,6 +167,19 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         this.driver = cloner.clone(driver);
     }
          
+    @Override
+    public void setSpatial(Spatial spatial) {
+        super.setSpatial(spatial);
+        if(spatial==null){
+            stop();
+        }
+    }
+
+    @Override
+    public void finalize(){        
+        stop();
+    }
 
 
+    
 }

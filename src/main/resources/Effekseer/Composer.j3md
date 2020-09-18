@@ -1,13 +1,9 @@
 MaterialDef  Composer {
 
     MaterialParameters {
-        Int NumSamples
-        Int NumSamplesDepth
-
+        Int NumSamples        
         Texture2D Texture
-        Texture2D ParticlesColor
-        Texture2D DepthTexture
-
+        Texture2D BlendTexture
     }
 
     Technique {
@@ -19,6 +15,7 @@ MaterialDef  Composer {
 
         Defines {
             RESOLVE_MS : NumSamples
+            BLEND: BlendTexture
         }
 
     }

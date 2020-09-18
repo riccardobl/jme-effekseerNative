@@ -27,27 +27,34 @@ public class EffekseerTest extends SimpleApplication{
         sp.playAnim(0,JesseAnimations.Run,true);
         
         EffekseerPostRenderer effekseerRenderer=new EffekseerPostRenderer(assetManager);
-        effekseerRenderer.setAsync(1);
+        // viewPort.addProcessor(effekseerRenderer);
+        // effekseerRenderer.setAsync(1);
 
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
         fpp.addFilter(effekseerRenderer);
-        fpp.addFilter(new BloomFilter(GlowMode.Scene));
-        fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
-        
+        // fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
+
+        // BloomFilter bloom=new BloomFilter(GlowMode.Scene);
+        // bloom.setBloomIntensity(4);
+        // bloom.setExposurePower(4f);
+        // fpp.addFilter(bloom);
+
+        if(settings.getSamples()>0)fpp.setNumSamples(settings.getSamples());
+
 
         flyCam.setMoveSpeed(10);
         viewPort.setBackgroundColor(ColorRGBA.Black);
         
-        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Flame.efkefc");
+        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Lightning.efkefc");
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()
                 .shape(new EffekseerPointFollowingSpatialShape())
-                .spawner(new EffekseerGenericSpawner().loop(true).delay(1f,2f, 1f).maxInstances(1000))
+                .spawner(new EffekseerGenericSpawner().loop(true).maxInstances(1))
                 .dynamicInputSupplier(new EffekseerGenericDynamicInputSupplier().set(0,10f).set(1,11f))
         );
         sp.addControl(effekt);
-
+        effekt.setScale(1f);
 
         cam.setLocation(new Vector3f(0,0,10));
         cam.lookAt(Vector3f.ZERO,Vector3f.UNIT_Y);
@@ -57,7 +64,7 @@ public class EffekseerTest extends SimpleApplication{
 
      public static void main(String[] args) {
          AppSettings settings=new AppSettings(true);
-         settings.setRenderer(AppSettings.LWJGL_OPENGL3);
+         settings.setRenderer(AppSettings.LWJGL_OPENGL2);
          EffekseerTest app=new EffekseerTest();
         app.setSettings(settings);;
          app.start();

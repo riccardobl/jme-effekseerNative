@@ -11,5 +11,5 @@ public interface EffekseerEmissionDriver extends Savable,JmeCloneable{
     public int tryEmit(EffekseerEmitFun emitInstanceAndGetHandle);
     public void setDynamicInputs( int handle,EffekseerDynamicInputSetterFun set);
     public void destroy(int handle);
-    public Transform getInstanceTransform(int handle,Spatial sp);
+    public Transform getInstanceTransform(int handle,Spatial sp,float scale);
 }
