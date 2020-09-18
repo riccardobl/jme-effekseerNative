@@ -13,8 +13,7 @@ repositories {
 }
 
 dependencies {
-
-    api "effekseer:effekseer-native:jme1.1.4"
+    api "effekseer:effekseer-native:jme1.1.6"
 
     compileOnly "org.jmonkeyengine:jme3-core:3.2.3-stable"
     compileOnly "org.jmonkeyengine:jme3-lwjgl:3.2.3-stable"
