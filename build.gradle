@@ -2,6 +2,12 @@ apply plugin: 'maven'
 apply plugin: 'java-library'
 
 
+group = "com.jme.effekseer"
+version= project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
+
+targetCompatibility = '1.8'
+sourceCompatibility = '1.8'
+
 repositories {
     jcenter()
     maven {  
@@ -16,12 +22,7 @@ dependencies {
     api "effekseer:effekseer-native:jme1.1.6"
 
     compileOnly "org.jmonkeyengine:jme3-core:3.2.3-stable"
-    compileOnly "org.jmonkeyengine:jme3-lwjgl:3.2.3-stable"
     compileOnly "org.jmonkeyengine:jme3-desktop:3.2.3-stable"
-    compileOnly "org.jmonkeyengine:jme3-bullet:3.2.3-stable"
-    compileOnly "org.jmonkeyengine:jme3-effects:3.2.3-stable"
-    compileOnly "org.jmonkeyengine:jme3-plugins:3.2.3-stable"
-    compileOnly "org.jmonkeyengine:jme3-bullet-native:3.2.3-stable"
 
     testImplementation 'com.github.polincdev:JesseModel:-SNAPSHOT'    
     testImplementation "org.jmonkeyengine:jme3-core:3.2.3-stable"
