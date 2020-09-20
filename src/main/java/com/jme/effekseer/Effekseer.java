@@ -68,13 +68,15 @@ public class Effekseer{
         EffekseerManagerCore core;
         Collection<Spatial> currentSceneParents;
         AssetManager am;
+        final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
+
+
         final float v16[]=new float[16];
         final Matrix4f m4=new Matrix4f();
-        final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
         final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
 
         boolean hasDepth;
-        Texture2D sceneData,fakeDepth;
+        Texture2D sceneData;
         final Vector2f frustumNearFar=new Vector2f();
         final Vector2f resolution=new Vector2f();
         float particlesHardness,particlesContrast;
@@ -253,22 +255,19 @@ public class Effekseer{
         }
     }
 
+    @Deprecated
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean linearizeSrgb) {
         render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,false,linearizeSrgb) ;
-
     }
 
-    /**
-     * Render the scene
-     * @param renderer GLRenderer
-     * @param cam Camera
-     * @param renderTarget framebuffer to which the particles will be rendered
-     * @param sceneDepth depth of the scene, used for culling and soft particles
-     */
+    @Deprecated
     public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean isGUI,boolean linearizeSrgb) {
         render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,isGUI,linearizeSrgb) ;
     }
     
+
+    
+
      /**
      * Render the scene
      * @param renderer GLRenderer
@@ -278,15 +277,21 @@ public class Effekseer{
      * @param particlesHardness lower values will make soft particles softer
      * @param particlesContrast higher values will make the soft particles transition (gradient between soft and hard particle) shorter 
      */
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,float particlesHardness,float particlesContrast,boolean isGUI,boolean linearizeSrgb) {
-
+    public static void render(
+        Renderer renderer,
+        Camera cam,
+        FrameBuffer renderTarget,
+        Texture sceneDepth,
+        float particlesHardness,
+        float particlesContrast,
+        boolean isGUI,
+        boolean linearizeSrgb
+    ) {
+        if(!(renderer instanceof GLRenderer))   throw new RuntimeException("Only GLRenderer supported at this moment");
         assert sceneDepth==null||sceneDepth.getImage().getMultiSamples()<=1:"Multisampled depth is not supported!";
-        State  state=getState();
-      
-        if(!(renderer instanceof GLRenderer)){
-            throw new RuntimeException("Only GLRenderer supported at this moment");
-        }
 
+        State  state=getState();
+             
         GLRenderer gl=(GLRenderer)renderer; 
          
         gl.setFrameBuffer(renderTarget);

@@ -9,12 +9,8 @@ import com.jme3.post.Filter;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.Caps;
-import com.jme3.renderer.RenderContext;
 import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.RendererException;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.opengl.GL;
-import com.jme3.renderer.opengl.GLFbo;
 import com.jme3.renderer.opengl.GLRenderer;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
@@ -29,9 +25,9 @@ public class EffekseerPostRenderer extends Filter{
     protected FrameBuffer renderTarget;
     protected float tpf;
     protected Boolean is2D=null;
-    protected FrameBuffer depthTarget;
     private Field linearizeSrgbImageF;
-
+    private float particlesHardness=0.1f;
+    private float particlesContrast=2f;
     public EffekseerPostRenderer(AssetManager manager,Boolean is2D){
         Effekseer.init(manager);
         this.is2D=is2D;
@@ -43,6 +39,16 @@ public class EffekseerPostRenderer extends Filter{
 
     public void setAsync(int nThreads) {
         Effekseer.setAsync(nThreads);
+    }
+
+    public void setSoftParticles(float hardness,float contrast){
+        particlesHardness=hardness;
+        particlesContrast=contrast;
+    }
+
+    public void setHardParticles(){
+        particlesHardness=1000;
+        particlesContrast=1f;
     }
 
     protected void preInit(ViewPort vp) {
@@ -112,129 +118,11 @@ public class EffekseerPostRenderer extends Filter{
         this.tpf=tpf;
     }
 
-    private RenderContext renderContext;
-    private GLFbo glfbo;
 
-    protected void initGl(RenderManager rm) {
-        GLRenderer renderer=(GLRenderer)rm.getRenderer();
-        try{
-            if(renderContext == null || glfbo == null){
-                for(Field f:renderer.getClass().getDeclaredFields()){
-                    Class t=f.getType();
-                    if(RenderContext.class.isAssignableFrom(t)){
-                        f.setAccessible(true);
-                        renderContext=(RenderContext)f.get(renderer);
-                    }else if(GLFbo.class.isAssignableFrom(t)){
-                        f.setAccessible(true);
-                        glfbo=(GLFbo)f.get(renderer);
-                    }
-                }
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
 
-    protected FrameBuffer bindFrameBuffer(RenderManager rm, FrameBuffer fb) {
-        initGl(rm);
-        FrameBuffer cfb=renderContext.boundFB;
-        rm.getRenderer().setFrameBuffer(fb);
-        return cfb;
-    }
 
-    protected void blitFrameBuffer(RenderManager rm, FrameBuffer src, FrameBuffer dst, boolean copyColor, boolean copyDepth) {
-        initGl(rm);
-        EnumSet<Caps> caps=rm.getRenderer().getCaps();
-        GLRenderer renderer=(GLRenderer)rm.getRenderer();
 
-        Camera cam=rm.getCurrentCamera();
-        int vpX=(int)(cam.getViewPortLeft() * cam.getWidth());
-        int vpY=(int)(cam.getViewPortBottom() * cam.getHeight());
-        int viewX2=(int)(cam.getViewPortRight() * cam.getWidth());
-        int viewY2=(int)(cam.getViewPortTop() * cam.getHeight());
-        int vpW=viewX2 - vpX;
-        int vpH=viewY2 - vpY;
-
-        if(caps.contains(Caps.FrameBufferBlit)){
-            int srcX0=0;
-            int srcY0=0;
-            int srcX1;
-            int srcY1;
-
-            int dstX0=0;
-            int dstY0=0;
-            int dstX1;
-            int dstY1;
-
-            int prevFBO=renderContext.boundFBO;
-
-            if(src != null && src.isUpdateNeeded()){
-                renderer.updateFrameBuffer(src);
-            }
-
-            if(dst != null && dst.isUpdateNeeded()){
-                renderer.updateFrameBuffer(dst);
-            }
-
-            if(src == null){
-                glfbo.glBindFramebufferEXT(GLFbo.GL_READ_FRAMEBUFFER_EXT,0);
-                srcX0=vpX;
-                srcY0=vpY;
-                srcX1=vpX + vpW;
-                srcY1=vpY + vpH;
-            }else{
-                glfbo.glBindFramebufferEXT(GLFbo.GL_READ_FRAMEBUFFER_EXT,src.getId());
-                srcX1=src.getWidth();
-                srcY1=src.getHeight();
-            }
-            if(dst == null){
-                glfbo.glBindFramebufferEXT(GLFbo.GL_DRAW_FRAMEBUFFER_EXT,0);
-                dstX0=vpX;
-                dstY0=vpY;
-                dstX1=vpX + vpW;
-                dstY1=vpY + vpH;
-            }else{
-                glfbo.glBindFramebufferEXT(GLFbo.GL_DRAW_FRAMEBUFFER_EXT,dst.getId());
-                dstX1=dst.getWidth();
-                dstY1=dst.getHeight();
-            }
-            int mask=0;
-            if(copyColor){
-                mask|=GL.GL_COLOR_BUFFER_BIT;
-            }
-            if(copyDepth){
-                mask|=GL.GL_DEPTH_BUFFER_BIT;
-            }
-            glfbo.glBlitFramebufferEXT(srcX0,srcY0,srcX1,srcY1,dstX0,dstY0,dstX1,dstY1,mask,GL.GL_NEAREST);
-
-            glfbo.glBindFramebufferEXT(GLFbo.GL_FRAMEBUFFER_EXT,prevFBO);
-        }else{
-            throw new RendererException("Framebuffer blitting not supported by the video hardware");
-        }
-    }
-
-    protected FrameBuffer getDepthTarget(RenderManager renderManager, FrameBuffer in) {
-        Format depthFormat=in.getDepthBuffer().getFormat();
-
-        int width;
-        int height;
-        if(in != null){
-            width=in.getWidth();
-            height=in.getHeight();
-        }else{
-            Camera cam=renderManager.getCurrentCamera();
-            width=cam.getWidth();
-            height=cam.getHeight();
-        }
-        if(depthTarget == null || depthTarget.getWidth() != width || depthTarget.getHeight() != height){
-            System.out.println("Create depth target " + in.getWidth() + "x" + in.getHeight());
-            if(depthTarget != null) depthTarget.dispose();
-            depthTarget=new FrameBuffer(width,height,1);
-            depthTarget.setDepthTexture(new Texture2D(width,height,depthFormat));
-        }
-        blitFrameBuffer(renderManager,in,depthTarget,false,true);
-        return depthTarget;
-    }
+   
 
     protected FrameBuffer getRenderTarget(RenderManager renderManager, FrameBuffer in, boolean is2D) {
         if(!is2D) return in;
@@ -269,9 +157,9 @@ public class EffekseerPostRenderer extends Filter{
             renderTarget.setColorTexture(new Texture2D(width,height,colorFormat));
             this.material.setTexture("BlendTexture",renderTarget.getColorBuffer().getTexture());
         }
-        FrameBuffer ofb=bindFrameBuffer(renderManager,renderTarget);
+        FrameBuffer ofb=EffekseerUtils.bindFrameBuffer(renderManager,renderTarget);
         renderManager.getRenderer().clearBuffers(true,true,true);
-        bindFrameBuffer(renderManager,ofb);
+        EffekseerUtils.bindFrameBuffer(renderManager,ofb);
 
         return renderTarget;
     }
@@ -285,22 +173,21 @@ public class EffekseerPostRenderer extends Filter{
 
         Texture depth=null;
         if(!is2D){
-            FrameBuffer dest=getDepthTarget(renderManager,sceneBuffer);
-            depth=dest.getDepthBuffer().getTexture();
+            depth=EffekseerUtils.copyDepthFromFrameBuffer(renderManager,sceneBuffer);
         }
-
         
         boolean linearizeSrgbImages=getLinearizeSrgbImages(renderManager);      
         sceneBuffer=getRenderTarget(renderManager,sceneBuffer,is2D);
         
-        FrameBuffer oldFb=bindFrameBuffer(renderManager,sceneBuffer);
+        FrameBuffer oldFb=EffekseerUtils.bindFrameBuffer(renderManager,sceneBuffer);
  
         Effekseer.beginScene(viewPort.getScenes());
         Effekseer.update(tpf);
-        Effekseer.render(renderManager.getRenderer(), cam,sceneBuffer,depth,is2D ,linearizeSrgbImages );
+
+        Effekseer.render(renderManager.getRenderer(), cam,sceneBuffer,depth,particlesHardness,particlesContrast,is2D ,linearizeSrgbImages );
         Effekseer.endScene();        
        
-        bindFrameBuffer(renderManager,oldFb);
+        EffekseerUtils.bindFrameBuffer(renderManager,oldFb);
 
     }
 

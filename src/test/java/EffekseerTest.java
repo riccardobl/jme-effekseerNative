@@ -10,7 +10,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
-import com.jme3.post.filters.DepthOfFieldFilter;
 import com.jme3.post.filters.BloomFilter.GlowMode;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.system.AppSettings;
@@ -33,12 +32,11 @@ public class EffekseerTest extends SimpleApplication{
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
         fpp.addFilter(effekseerRenderer);
-        // fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
+        fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
 
-        // BloomFilter bloom=new BloomFilter(GlowMode.Scene);
-        // bloom.setBloomIntensity(4);
-        // bloom.setExposurePower(4f);
-        // fpp.addFilter(bloom);
+        BloomFilter bloom=new BloomFilter(GlowMode.Scene);
+        
+        fpp.addFilter(bloom);
 
         if(settings.getSamples()>0)fpp.setNumSamples(settings.getSamples());
 

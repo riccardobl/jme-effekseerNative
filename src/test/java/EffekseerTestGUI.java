@@ -17,6 +17,7 @@ public class EffekseerTestGUI extends SimpleApplication{
         app.start(); // start the game
     }
 
+    
     @Override
     public void simpleInitApp() {
 
@@ -30,11 +31,11 @@ public class EffekseerTestGUI extends SimpleApplication{
         // Load an effect
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Lightning.efkefc");
 
-               effekt.setDriver(
-                       new EffekseerEmissionDriverGeneric()
-                       .shape(new EffekseerPointFollowingSpatialShape())
-                       .spawner(new EffekseerGenericSpawner().loop(true).maxInstances(1))
-               );
+        effekt.setDriver(
+            new EffekseerEmissionDriverGeneric()
+            .shape(new EffekseerPointFollowingSpatialShape())
+            .spawner(new EffekseerGenericSpawner().loop(true).maxInstances(1))
+        );
 
         // Attach to a spatial
         Node n=new Node();
