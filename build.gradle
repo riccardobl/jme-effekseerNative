@@ -34,8 +34,12 @@ dependencies {
     testImplementation "org.jmonkeyengine:jme3-bullet-native:3.2.3-stable"
 }
 
-
-
+compileJava.doLast {
+	def buildDate = new Date().format('yyyy-MM-dd HHmm')
+	println "Writing jme-effekseerNative.build.date: " + buildDate
+	new File(destinationDir, "jme-effekseerNative.build.date").text = buildDate
+	new File(destinationDir, "jme-effekseerNative.build.version").text = version
+}
 
 task testJar(type: Jar) {
     classifier = 'test'
