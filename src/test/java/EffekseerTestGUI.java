@@ -12,7 +12,7 @@ public class EffekseerTestGUI extends SimpleApplication{
     public static void main(String[] args) {
         EffekseerTestGUI app=new EffekseerTestGUI();
         AppSettings settings=new AppSettings(true);
-        settings.setRenderer(AppSettings.LWJGL_OPENGL3);
+        settings.setRenderer(AppSettings.LWJGL_OPENGL32);
         app.setSettings(settings);
         app.start(); // start the game
     }
