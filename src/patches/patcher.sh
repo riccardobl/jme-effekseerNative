@@ -33,9 +33,7 @@ do
 
     replace "$relf" "HEADER.gl" "$relcdir/softParticles.HEADER.gl.glsl"
     replace "$relf" "BODY.gl" "$relcdir/softParticles.BODY.gl.glsl"
-        
-    replace "$relf" "HEADER.gl" "$relcdir/srgb.HEADER.gl.glsl"
-    replace "$relf" "BODY.gl" "$relcdir/srgb.BODY.gl.glsl"
+
 
     finalize  "$relf" "BODY.gl" 
     finalize "$relf" "HEADER.gl" 
