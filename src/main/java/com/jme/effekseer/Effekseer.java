@@ -74,7 +74,11 @@ public class Effekseer{
         final float v16[]=new float[16];
         final Matrix4f m4=new Matrix4f();
         final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
+        {
+            v1SpatialList.add(null);
+        }
 
+        boolean isNew=true;
         boolean hasDepth;
         Texture2D sceneData;
         final Vector2f frustumNearFar=new Vector2f();
@@ -88,14 +92,22 @@ public class Effekseer{
             EffekseerBackendCore.InitializeAsOpenGL();
             State state=new State();
             state.core=new EffekseerManagerCore();
-            state.core.Initialize(8000);
             return state;
         }
     };
 
-
     private static State getState() {
-        return state.get();
+        return getState(null);
+    }
+
+    private static State getState(Boolean sRGB) {
+        State s= state.get();
+        if(s.isNew&&sRGB!=null){
+            s.isNew=false;
+            s.core.Initialize(8000,sRGB);
+        }
+        assert !s.isNew;
+        return s;
     }
 
     public static void setAsync(int threads) {
@@ -106,8 +118,8 @@ public class Effekseer{
     /**
      * Init and return an effekseer instance
      */
-    public static State init(AssetManager am) {
-        State state=getState();
+    public static State init(AssetManager am,boolean sRGB) {
+        State state=getState(sRGB);
         if(state.am != am){
             if(state.am != null){
                 state.am.unregisterLoader(EffekseerLoader.class);
@@ -144,7 +156,7 @@ public class Effekseer{
         state.core.Update(t);
     }
 
-    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast,boolean hasDepth,boolean linearizeSrgb) {
+    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast,boolean hasDepth) {
         State state=getState();
 
         boolean rebuildSceneData=false;
@@ -182,7 +194,6 @@ public class Effekseer{
                 data.putFloat(state.hasDepth&&particlesHardness<1000?state.frustumNearFar.x:-1);
                 data.putFloat(state.hasDepth&&particlesHardness<1000?state.frustumNearFar.y:-1);
                 data.putFloat(particlesContrast);
-                data.putFloat(linearizeSrgb?100:0);
                 data.rewind();
             }else if(renderer.getCaps().contains(Caps.PackedFloatTexture)){
                 ByteBuffer data=state.sceneData.getImage().getData(0);
@@ -193,7 +204,6 @@ public class Effekseer{
                 data.putShort(state.hasDepth&&particlesHardness<1000?FastMath.convertFloatToHalf(state.frustumNearFar.x):-1);
                 data.putShort(state.hasDepth&&particlesHardness<1000?FastMath.convertFloatToHalf(state.frustumNearFar.y):-1);
                 data.putShort(FastMath.convertFloatToHalf(particlesContrast));
-                data.putShort(FastMath.convertFloatToHalf(linearizeSrgb?100:0));
                 data.rewind();
             }else{
                 throw new RendererException("Unsupported Platform. FloatTexture or PackedFloatTexture required for jme-effekseerNative.");
@@ -256,13 +266,13 @@ public class Effekseer{
     }
 
     @Deprecated
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean linearizeSrgb) {
-        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,false,linearizeSrgb) ;
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
+        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,false) ;
     }
 
     @Deprecated
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean isGUI,boolean linearizeSrgb) {
-        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,isGUI,linearizeSrgb) ;
+    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean isGUI) {
+        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,isGUI) ;
     }
     
 
@@ -284,8 +294,7 @@ public class Effekseer{
         Texture sceneDepth,
         float particlesHardness,
         float particlesContrast,
-        boolean isGUI,
-        boolean linearizeSrgb
+        boolean isGUI
     ) {
         if(!(renderer instanceof GLRenderer))   throw new RuntimeException("Only GLRenderer supported at this moment");
         assert sceneDepth==null||sceneDepth.getImage().getMultiSamples()<=1:"Multisampled depth is not supported!";
@@ -297,7 +306,7 @@ public class Effekseer{
         gl.setFrameBuffer(renderTarget);
      
         if(sceneDepth!=null)gl.setTexture(12, sceneDepth);
-        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast,sceneDepth!=null,linearizeSrgb));
+        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast,sceneDepth!=null));
                         
         if(isGUI){
             state.core.SetViewProjectionMatrixWithSimpleWindow(cam.getWidth(),cam.getHeight());

@@ -5,6 +5,7 @@ import java.util.EnumSet;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.post.Filter;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.renderer.Camera;
@@ -25,16 +26,23 @@ public class EffekseerPostRenderer extends Filter{
     protected FrameBuffer renderTarget;
     protected float tpf;
     protected Boolean is2D=null;
-    private Field linearizeSrgbImageF;
     private float particlesHardness=0.1f;
     private float particlesContrast=2f;
-    public EffekseerPostRenderer(AssetManager manager,Boolean is2D){
-        Effekseer.init(manager);
+
+    public EffekseerPostRenderer(AssetManager manager,Boolean is2D,boolean sRGB){
+        Effekseer.init(manager,sRGB);
         this.is2D=is2D;
     }
 
+    public EffekseerPostRenderer(AssetManager manager,boolean sRGB){
+        this(manager,null,sRGB);
+    }
+
+
+    
+    @Deprecated
     public EffekseerPostRenderer(AssetManager manager){
-        this(manager,null);
+        this(manager,null,false);
     }
 
     public void setAsync(int nThreads) {
@@ -93,25 +101,10 @@ public class EffekseerPostRenderer extends Filter{
         this.material=new Material(manager,"Effekseer/Composer.j3md");
         preInit(vp);
         
-        try{
-            linearizeSrgbImageF=GLRenderer.class.getDeclaredField("linearizeSrgbImages");
-            linearizeSrgbImageF.setAccessible(true);
-        }catch(Exception e){
-            e.printStackTrace();
-        }
+ 
     }
 
-    protected boolean getLinearizeSrgbImages(RenderManager rm){
-        GLRenderer r=(GLRenderer)rm.getRenderer();
-        if(linearizeSrgbImageF != null){
-            try{
-                return (boolean)linearizeSrgbImageF.get(r);
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-        return false;
-    }
+ 
 
     @Override
     protected void preFrame(float tpf) {
@@ -155,12 +148,20 @@ public class EffekseerPostRenderer extends Filter{
             renderTarget=new FrameBuffer(width,height,1);
             renderTarget.setDepthTexture(new Texture2D(width,height,depthFormat));
             renderTarget.setColorTexture(new Texture2D(width,height,colorFormat));
-            this.material.setTexture("BlendTexture",renderTarget.getColorBuffer().getTexture());
+            this.material.setTexture("Texture2",renderTarget.getColorBuffer().getTexture());
+            this.material.getAdditionalRenderState().setDepthTest(false);
         }
+        assert renderTarget!=null;
+        
         FrameBuffer ofb=EffekseerUtils.bindFrameBuffer(renderManager,renderTarget);
-        renderManager.getRenderer().clearBuffers(true,true,true);
-        EffekseerUtils.bindFrameBuffer(renderManager,ofb);
+        // System.out.println("Replace fb bind "+ofb+" with "+renderTarget);
+        // System.out.println("Clear renderTarget");
 
+        EffekseerUtils.clearFrameBuffer(renderManager,renderTarget,false,true,true,ColorRGBA.BlackNoAlpha);
+        EffekseerUtils.blitFrameBuffer(renderManager, in, renderTarget, true, false);
+
+        // System.out.println("Restore fb bind by replacing "+renderTarget+" with "+ofb);
+        EffekseerUtils.bindFrameBuffer(renderManager,ofb);
         return renderTarget;
     }
 
@@ -176,7 +177,6 @@ public class EffekseerPostRenderer extends Filter{
             depth=EffekseerUtils.copyDepthFromFrameBuffer(renderManager,sceneBuffer);
         }
         
-        boolean linearizeSrgbImages=getLinearizeSrgbImages(renderManager);      
         sceneBuffer=getRenderTarget(renderManager,sceneBuffer,is2D);
         
         FrameBuffer oldFb=EffekseerUtils.bindFrameBuffer(renderManager,sceneBuffer);
@@ -184,7 +184,7 @@ public class EffekseerPostRenderer extends Filter{
         Effekseer.beginScene(viewPort.getScenes());
         Effekseer.update(tpf);
 
-        Effekseer.render(renderManager.getRenderer(), cam,sceneBuffer,depth,particlesHardness,particlesContrast,is2D ,linearizeSrgbImages );
+        Effekseer.render(renderManager.getRenderer(), cam,sceneBuffer,depth,particlesHardness,particlesContrast,is2D  );
         Effekseer.endScene();        
        
         EffekseerUtils.bindFrameBuffer(renderManager,oldFb);

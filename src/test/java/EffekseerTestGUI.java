@@ -1,6 +1,7 @@
 import com.jme.effekseer.EffekseerEmitterControl;
 import com.jme.effekseer.EffekseerPostRenderer;
 import com.jme3.app.SimpleApplication;
+import com.jme3.math.ColorRGBA;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
@@ -26,10 +27,10 @@ public class EffekseerTestGUI extends SimpleApplication{
         getGuiViewPort().addProcessor(fpp);
    
         // Add Effekseer Renderer
-        fpp.addFilter(new EffekseerPostRenderer(getAssetManager()));
+        fpp.addFilter(new EffekseerPostRenderer(getAssetManager(),settings.isGammaCorrection()));
 
         // Load an effect
-        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Lightning.efkefc");
+        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("Effekts/prova.efkefc");
 
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()
@@ -41,7 +42,7 @@ public class EffekseerTestGUI extends SimpleApplication{
         Node n=new Node();
         n.addControl(effekt);
         n.setLocalTranslation(cam.getWidth() / 2,cam.getHeight() / 2,0);
-        n.setLocalScale(4f);
+        n.setLocalScale(60f);
 
         guiNode.attachChild(n);
     }

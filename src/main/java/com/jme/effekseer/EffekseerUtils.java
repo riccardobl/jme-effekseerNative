@@ -5,6 +5,7 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.Caps;
 import com.jme3.renderer.RenderContext;
 import com.jme3.renderer.RenderManager;
@@ -23,6 +24,7 @@ public class EffekseerUtils{
         private RenderContext renderContext;
         private GLFbo glfbo;
         private Map<FrameBuffer,FrameBuffer> copyBuffer=new WeakHashMap<FrameBuffer,FrameBuffer>();
+        private final ColorRGBA tmpColor=new ColorRGBA();
     }
 
     private static ThreadLocal<State> stateTl=new ThreadLocal<State>(){
@@ -143,10 +145,23 @@ public class EffekseerUtils{
         }
     }
 
+
+
+
+    public static void clearFrameBuffer(RenderManager rm, FrameBuffer fb,boolean color,boolean depth,boolean stencil,ColorRGBA bgColor) {
+        State state=getState(rm);
+        FrameBuffer ofb=bindFrameBuffer(rm,fb);
+        state.tmpColor.set(state.renderContext.clearColor);
+        rm.getRenderer().setBackgroundColor(bgColor);
+        rm.getRenderer().clearBuffers(color,depth,stencil);    
+        rm.getRenderer().setBackgroundColor(state.tmpColor);        
+        bindFrameBuffer(rm,ofb);        
+    }
+
     public static FrameBuffer bindFrameBuffer(RenderManager rm, FrameBuffer fb) {
         State state=getState(rm);
         FrameBuffer cfb=state.renderContext.boundFB;
-        rm.getRenderer().setFrameBuffer(fb);
+        if(cfb!=fb) rm.getRenderer().setFrameBuffer(fb);
         return cfb;
     }
 
@@ -167,6 +182,7 @@ public class EffekseerUtils{
             if(depthTarget != null) depthTarget.dispose();
             depthTarget=new FrameBuffer(width,height,1);
             depthTarget.setDepthTexture(new Texture2D(width,height,depthFormat));
+            state.copyBuffer.put(in,depthTarget);
         }
         EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,false,true);
         return depthTarget.getDepthBuffer().getTexture();

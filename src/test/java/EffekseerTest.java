@@ -25,8 +25,7 @@ public class EffekseerTest extends SimpleApplication{
         JesseSpatial sp=Jesse.buildAndAttachScene(assetManager,rootNode);
         sp.playAnim(0,JesseAnimations.Run,true);
         
-        EffekseerPostRenderer effekseerRenderer=new EffekseerPostRenderer(assetManager);
-        // viewPort.addProcessor(effekseerRenderer);
+        EffekseerPostRenderer effekseerRenderer=new EffekseerPostRenderer(assetManager,settings.isGammaCorrection());
         // effekseerRenderer.setAsync(1);
 
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
@@ -35,7 +34,7 @@ public class EffekseerTest extends SimpleApplication{
         fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
 
         BloomFilter bloom=new BloomFilter(GlowMode.Scene);
-        
+        bloom.setBloomIntensity(4f);
         fpp.addFilter(bloom);
 
         if(settings.getSamples()>0)fpp.setNumSamples(settings.getSamples());
@@ -44,7 +43,7 @@ public class EffekseerTest extends SimpleApplication{
         flyCam.setMoveSpeed(10);
         viewPort.setBackgroundColor(ColorRGBA.Black);
         
-        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Pierre/Lightning.efkefc");
+        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/fire/fire5.efkefc");
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()
                 .shape(new EffekseerPointFollowingSpatialShape())
@@ -52,7 +51,7 @@ public class EffekseerTest extends SimpleApplication{
                 .dynamicInputSupplier(new EffekseerGenericDynamicInputSupplier().set(0,10f).set(1,11f))
         );
         sp.addControl(effekt);
-        effekt.setScale(1f);
+        effekt.setScale(10f);
 
         cam.setLocation(new Vector3f(0,0,10));
         cam.lookAt(Vector3f.ZERO,Vector3f.UNIT_Y);
