@@ -1,10 +1,23 @@
 package com.jme.effekseer;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
+import com.jme.effekseer.driver.fun.impl.EffekseerPointFollowingSpatialShape;
+import com.jme3.asset.AssetInfo;
+import com.jme3.asset.AssetKey;
+import com.jme3.asset.AssetManager;
+import com.jme3.asset.AssetNotFoundException;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.Caps;
 import com.jme3.renderer.RenderContext;
@@ -13,6 +26,7 @@ import com.jme3.renderer.RendererException;
 import com.jme3.renderer.opengl.GL;
 import com.jme3.renderer.opengl.GLFbo;
 import com.jme3.renderer.opengl.GLRenderer;
+import com.jme3.scene.Spatial;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture;
@@ -191,6 +205,148 @@ public class EffekseerUtils{
         EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,false,true,width,height);
         return depthTarget.getDepthBuffer().getTexture();
 
+    }
+
+
+
+    private static Number getNumberData(Spatial sx,String k,Number def){
+        Object o=sx.getUserData(k);
+        if(o==null)return def;
+        if(o instanceof Number)return (Number)o;
+        return Float.parseFloat(o.toString());
+    }
+
+    private static Boolean getBooleanData(Spatial sx,String k,Boolean def){
+        Object o=sx.getUserData(k);
+        if(o==null)return def;
+        if(o instanceof Boolean)return (Boolean)o;        
+        if(o instanceof Number)  return ((Number)o).intValue()==1;        
+        String v=o.toString().toLowerCase();
+        return v.equals("true")||v.equals("1");        
+    }
+    
+
+
+
+    static byte[] readAll(InputStream is) throws IOException {
+        byte chunk[]=new byte[1024*1024];
+        ByteArrayOutputStream bos=new ByteArrayOutputStream();
+        int read;
+        while((read=is.read(chunk)) != -1) bos.write(chunk,0,read);
+        return bos.toByteArray();
+    }
+
+    private static String normalizePath(String ...parts){
+        String path="";
+
+        for(String part:parts){
+            path+="/"+part.replace("\\", "/");
+        }
+
+        path=path.replace("/",File.separator);
+        path=Paths.get(path).normalize().toString();
+        path=path.replace("\\", "/");
+
+        
+        int sStr=0;
+        while(path.startsWith("../",sStr))sStr+=3;
+        path=path.substring(sStr);
+
+        if(path.startsWith("/"))path=path.substring(1);
+
+        return path;
+    }
+
+    private static Collection<String> guessPossibleRelPaths(String root,String opath){
+        root=normalizePath(root);
+
+        String path=opath;
+        path=normalizePath(path);       
+        
+        System.out.println("Guesses for "+opath+" normalized "+path+" in root "+root);
+
+        ArrayList<String> paths=new ArrayList<String>();   
+
+        paths.add(path);
+        paths.add(normalizePath(root,path));
+
+        ArrayList<String> pathsNoRoot=new ArrayList<String>();   
+
+        while(true){
+            int i=path.indexOf("/");
+            if(i==-1)break;
+            path=path.substring(i+1);
+            if(path.isEmpty())break;
+            pathsNoRoot.add(path);
+            paths.add(normalizePath(root,path));
+        }
+
+        paths.addAll(pathsNoRoot);
+
+
+        for(String p:paths){
+            System.out.println(" > "+p);
+        }
+
+        return paths;
+    }
+
+    static InputStream openStream(AssetManager am, String rootPath,String path) {
+        AssetInfo info=null;
+        Collection<String> guessedPaths=guessPossibleRelPaths(rootPath,path);
+        for(String p:guessedPaths){
+            try{
+                System.out.println("Try to locate assets "+Paths.get(path).getFileName()+" in "+p);
+                info=am.locateAsset(new AssetKey(p));
+                if(info!=null){
+                    System.out.println("Found in "+p);
+                    break;
+                }
+            }catch(AssetNotFoundException e){
+                System.out.println("Not found in "+p);
+            }
+        }
+        if(info==null)throw new AssetNotFoundException(path);
+        return info.openStream();
+    }
+
+
+
+    public static Collection<EffekseerEmitterControl>  loadFromScene(AssetManager am,Spatial scene){
+        Collection<EffekseerEmitterControl> emitters=new ArrayList<EffekseerEmitterControl>();
+        scene.depthFirstTraversal(sx->{
+            if(sx.getUserData("_effekseer")!=null){
+                String path=sx.getUserData("_effekseer_path");     
+                if(path!=null){
+                    Collection<String> paths=guessPossibleRelPaths("", path) ;
+                    boolean found=false;
+                    for(String p:paths){
+                        float scale=getNumberData(sx,"_effekseer_scale",1f).floatValue();
+                        boolean ignorerot=getBooleanData(sx,"_effekseer_ignorerot",false);
+                        boolean enabled=getBooleanData(sx,"_effekseer_enabled",true);
+                        try{
+                            EffekseerEmitterControl effekt=(EffekseerEmitterControl)am.loadAsset(p);
+                            if(effekt==null)throw new AssetNotFoundException(p);
+                            effekt.setScale(scale);
+                            effekt.setEnabled(enabled);
+                            effekt.setDriver(new EffekseerEmissionDriverGeneric().shape(
+                                new EffekseerPointFollowingSpatialShape().ignoreRot(ignorerot)
+                            ));
+                            sx.addControl(effekt);
+                            emitters.add(effekt);
+                            found=true;
+                            break;
+                        }catch(AssetNotFoundException e){
+                            System.out.println("Asset not found"+e+"try another path");
+                        }
+                    }
+                    if(!found){
+                        throw new AssetNotFoundException(path);
+                    }
+                }
+            }
+        });
+        return emitters;
     }
 
 }

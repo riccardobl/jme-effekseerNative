@@ -365,98 +365,16 @@ public class Effekseer{
         state.core.SetEffectTransformMatrix(handler, state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11] );
     }
 
-    private static byte[] readAll(InputStream is) throws IOException {
-        byte chunk[]=new byte[1024*1024];
-        ByteArrayOutputStream bos=new ByteArrayOutputStream();
-        int read;
-        while((read=is.read(chunk)) != -1) bos.write(chunk,0,read);
-        return bos.toByteArray();
-    }
-
-    private static String normalizePath(String ...parts){
-        String path="";
-
-        for(String part:parts){
-            path+="/"+part.replace("\\", "/");
-        }
-
-        path=path.replace("/",File.separator);
-        path=Paths.get(path).normalize().toString();
-        path=path.replace("\\", "/");
-
-        
-        int sStr=0;
-        while(path.startsWith("../",sStr))sStr+=3;
-        path=path.substring(sStr);
-
-        if(path.startsWith("/"))path=path.substring(1);
-
-        return path;
-    }
-
-    private static Collection<String> guessPossibleRelPaths(String root,String opath){
-        root=normalizePath(root);
-
-        String path=opath;
-        path=normalizePath(path);       
-        
-        System.out.println("Guesses for "+opath+" normalized "+path+" in root "+root);
-
-        ArrayList<String> paths=new ArrayList<String>();   
-
-        paths.add(path);
-        paths.add(normalizePath(root,path));
-
-        ArrayList<String> pathsNoRoot=new ArrayList<String>();   
-
-        while(true){
-            int i=path.indexOf("/");
-            if(i==-1)break;
-            path=path.substring(i+1);
-            if(path.isEmpty())break;
-            pathsNoRoot.add(path);
-            paths.add(normalizePath(root,path));
-        }
-
-        paths.addAll(pathsNoRoot);
-
-
-        for(String p:paths){
-            System.out.println(" > "+p);
-        }
-
-        return paths;
-    }
-
-    private static InputStream openStream(AssetManager am, String rootPath,String path) {
-        AssetInfo info=null;
-        Collection<String> guessedPaths=guessPossibleRelPaths(rootPath,path);
-        for(String p:guessedPaths){
-            try{
-                System.out.println("Try to locate assets "+Paths.get(path).getFileName()+" in "+p);
-                info=am.locateAsset(new AssetKey(p));
-                if(info!=null){
-                    System.out.println("Found in "+p);
-                    break;
-                }
-            }catch(AssetNotFoundException e){
-                System.out.println("Not found in "+p);
-            }
-        }
-        if(info==null)throw new AssetNotFoundException(path);
-        return info.openStream();
-    }
-
     public static EffekseerEmitterControl loadEffect(AssetManager am, String path,EffekseerEmitterControl dest) throws IOException {
-        InputStream is=openStream(am,"",path);
+        InputStream is=EffekseerUtils.openStream(am,"",path);
         return loadEffect(am,path,is,dest);
     }
 
     public static EffekseerEmitterControl loadEffect(AssetManager am, String path, InputStream is,EffekseerEmitterControl dest) throws IOException {
-        byte data[]=readAll(is);
+        byte data[]=EffekseerUtils.readAll(is);
         return loadEffect(am,path,data,dest);
     }
-    
+
     public static EffekseerEmitterControl loadEffect(AssetManager am, String path, byte[] data, EffekseerEmitterControl dest) throws IOException {
         
         byte bytes[]=data;
@@ -476,8 +394,8 @@ public class Effekseer{
         for(int t=0;t < 3;t++){
             for(int i=0;i < effectCore.GetTextureCount(textureTypes[t]);i++){
                 String p=effectCore.GetTexturePath(i,textureTypes[t]);
-                InputStream iss=openStream(am,root,p);
-                bytes=readAll(iss);
+                InputStream iss=EffekseerUtils.openStream(am,root,p);
+                bytes=EffekseerUtils.readAll(iss);
                 if(!effectCore.LoadTexture(bytes,bytes.length,i,textureTypes[t]) ){
                     throw new AssetLoadException("Can't load effect texture "+p);
                 }  else{
@@ -489,8 +407,8 @@ public class Effekseer{
         // Models
         for(int i=0;i < effectCore.GetModelCount();i++){
             String p=effectCore.GetModelPath(i);
-            InputStream iss=openStream(am,root,p);
-            bytes=readAll(iss);
+            InputStream iss=EffekseerUtils.openStream(am,root,p);
+            bytes=EffekseerUtils.readAll(iss);
             if(!effectCore.LoadModel(bytes,bytes.length,i) ){
                 throw new AssetLoadException("Can't effect load model "+p);
             }        
@@ -499,8 +417,8 @@ public class Effekseer{
         // Materials
         for(int i=0;i < effectCore.GetMaterialCount();i++){   
             String p= effectCore.GetMaterialPath(i); 
-            InputStream iss=openStream(am,root,p);            
-            bytes=readAll(iss);
+            InputStream iss=EffekseerUtils.openStream(am,root,p);            
+            bytes=EffekseerUtils.readAll(iss);
             if(!effectCore.LoadMaterial(bytes,bytes.length,i) ){
                 throw new AssetLoadException("Can't load effect material "+p);
             }        
