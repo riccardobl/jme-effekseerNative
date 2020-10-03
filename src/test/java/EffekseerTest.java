@@ -1,6 +1,6 @@
 
 import com.jme.effekseer.EffekseerEmitterControl;
-import com.jme.effekseer.EffekseerPostRenderer;
+import com.jme.effekseer.EffekseerRenderer;
 import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
 import com.jme.effekseer.driver.fun.impl.EffekseerGenericDynamicInputSupplier;
 import com.jme.effekseer.driver.fun.impl.EffekseerGenericSpawner;
@@ -25,13 +25,13 @@ public class EffekseerTest extends SimpleApplication{
         JesseSpatial sp=Jesse.buildAndAttachScene(assetManager,rootNode);
         sp.playAnim(0,JesseAnimations.Run,true);
         
-        EffekseerPostRenderer effekseerRenderer=new EffekseerPostRenderer(assetManager,settings.isGammaCorrection());
-        // effekseerRenderer.setAsync(1);
 
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
-        fpp.addFilter(effekseerRenderer);
-        fpp.addFilter(new SSAOFilter(2.9299974f,32.920483f,5.8100376f,0.091000035f));
+
+        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(viewPort, assetManager,settings.isGammaCorrection());
+        effekseerRenderer.setAsync(1);
+
 
         BloomFilter bloom=new BloomFilter(GlowMode.Scene);
         bloom.setBloomIntensity(4f);

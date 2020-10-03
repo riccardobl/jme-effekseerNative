@@ -3,7 +3,6 @@ MaterialDef  Composer {
     MaterialParameters {
         Int NumSamples        
         Texture2D Texture
-        Texture2D Texture2
     }
 
     Technique {
@@ -15,7 +14,6 @@ MaterialDef  Composer {
 
         Defines {
             RESOLVE_MS : NumSamples
-            TX2: Texture2
         }
 
     }

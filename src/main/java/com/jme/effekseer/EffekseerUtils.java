@@ -61,8 +61,12 @@ public class EffekseerUtils{
         }
         return state;
     }
-
+    
     public static void blitFrameBuffer(RenderManager rm, FrameBuffer src, FrameBuffer dst, boolean copyColor, boolean copyDepth) {
+        blitFrameBuffer(rm, src, dst, copyColor, copyDepth,src.getWidth(),src.getHeight());
+    }
+
+    public static void blitFrameBuffer(RenderManager rm, FrameBuffer src, FrameBuffer dst, boolean copyColor, boolean copyDepth,int width,int height) {
         State state=getState(rm);
         EnumSet<Caps> caps=rm.getRenderer().getCaps();
         GLRenderer renderer=(GLRenderer)rm.getRenderer();
@@ -80,11 +84,11 @@ public class EffekseerUtils{
         int vpW;
         int vpH;
         if(src!=null){
-            vpW=src.getWidth();
-            vpH=src.getHeight();
+            vpW=width;
+            vpH=height;
         }else{
-            vpW=dst.getWidth();
-            vpH=dst.getHeight();
+            vpW=width;
+            vpH=height;
         }
 
         if(caps.contains(Caps.FrameBufferBlit)){
@@ -116,8 +120,8 @@ public class EffekseerUtils{
                 srcY1=vpY + vpH;
             }else{
                 state.glfbo.glBindFramebufferEXT(GLFbo.GL_READ_FRAMEBUFFER_EXT,src.getId());
-                srcX1=src.getWidth();
-                srcY1=src.getHeight();
+                srcX1=width;
+                srcY1=height;
             }
             if(dst == null){
                 state.glfbo.glBindFramebufferEXT(GLFbo.GL_DRAW_FRAMEBUFFER_EXT,0);
@@ -127,8 +131,8 @@ public class EffekseerUtils{
                 dstY1=vpY + vpH;
             }else{
                 state. glfbo.glBindFramebufferEXT(GLFbo.GL_DRAW_FRAMEBUFFER_EXT,dst.getId());
-                dstX1=dst.getWidth();
-                dstY1=dst.getHeight();
+                dstX1=width;
+                dstY1=height;
             }
             int mask=0;
             if(copyColor){
@@ -166,25 +170,25 @@ public class EffekseerUtils{
     }
 
 
-    public static Texture copyDepthFromFrameBuffer(RenderManager renderManager, FrameBuffer in) {
-        assert in!=null;
+    public static Texture copyDepthFromFrameBuffer(RenderManager renderManager, FrameBuffer in,int width,int height) {
+        // assert in!=null;
         State state=getState(renderManager);
 
-        Format depthFormat=in.getDepthBuffer().getFormat();
+        Format depthFormat=in!=null?in.getDepthBuffer().getFormat():Format.Depth;
 
-        int width=in.getWidth();
-        int height=in.getHeight();
+        // int width=in.getWidth();
+        // int height=in.getHeight();
 
         FrameBuffer depthTarget=state.copyBuffer.get(in);
 
         if(depthTarget == null || depthTarget.getWidth() != width || depthTarget.getHeight() != height || depthTarget.getDepthBuffer().getFormat() != depthFormat){
-            System.out.println("Create depth target " + in.getWidth() + "x" + in.getHeight());
+            System.out.println("Create depth target " + width + "x" + height);
             if(depthTarget != null) depthTarget.dispose();
             depthTarget=new FrameBuffer(width,height,1);
             depthTarget.setDepthTexture(new Texture2D(width,height,depthFormat));
             state.copyBuffer.put(in,depthTarget);
         }
-        EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,false,true);
+        EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,false,true,width,height);
         return depthTarget.getDepthBuffer().getTexture();
 
     }

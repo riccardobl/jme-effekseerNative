@@ -1,10 +1,19 @@
 import com.jme.effekseer.EffekseerEmitterControl;
-import com.jme.effekseer.EffekseerPostRenderer;
+import com.jme.effekseer.EffekseerRenderer;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.filters.BloomFilter.GlowMode;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
+import com.jme3.ui.Picture;
+
+import org.jesse.Jesse;
+import org.jesse.JesseSpatial;
+import org.jesse.JesseSpatial.JesseAnimations;
+
 import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
 import com.jme.effekseer.driver.fun.impl.*;
 
@@ -22,13 +31,9 @@ public class EffekseerTestGUI extends SimpleApplication{
     @Override
     public void simpleInitApp() {
 
-        // Add a filter post processor to your viewPort
-        FilterPostProcessor fpp=new FilterPostProcessor(getAssetManager());
-        getGuiViewPort().addProcessor(fpp);
    
-        // Add Effekseer Renderer
-        fpp.addFilter(new EffekseerPostRenderer(getAssetManager(),settings.isGammaCorrection()));
-
+        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(guiViewPort,assetManager, settings.isGammaCorrection());
+ 
         // Load an effect
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("Effekts/prova.efkefc");
 
