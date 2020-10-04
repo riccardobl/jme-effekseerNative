@@ -14,9 +14,16 @@ public class EffekseerLoader implements AssetLoader{
     @Override
     public Object load(AssetInfo assetInfo) throws IOException {
         InputStream is=assetInfo.openStream();
-        EffekseerEmitterControl efc=Effekseer.loadEffect(assetInfo.getManager(),assetInfo.getKey().getName(),is,null);
-        is.close();
-        return efc;
+        LoadedEffect efc=Effekseer.loadEffect(assetInfo.getManager(),assetInfo.getKey().getName(),is);
+        if(assetInfo.getKey() instanceof EffekseerEffectKey){
+            return efc;
+        }else{
+            EffekseerEmitterControl ec=new EffekseerEmitterControl();
+            ec.setEffect(efc.core);
+            ec.setPath(efc.path);
+            is.close();
+            return ec;
+        }   
     }
 
 }

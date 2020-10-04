@@ -365,17 +365,19 @@ public class Effekseer{
         state.core.SetEffectTransformMatrix(handler, state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11] );
     }
 
-    public static EffekseerEmitterControl loadEffect(AssetManager am, String path,EffekseerEmitterControl dest) throws IOException {
+
+
+    public static LoadedEffect loadEffect(AssetManager am, String path) throws IOException {
         InputStream is=EffekseerUtils.openStream(am,"",path);
-        return loadEffect(am,path,is,dest);
+        return loadEffect(am,path,is);
     }
 
-    public static EffekseerEmitterControl loadEffect(AssetManager am, String path, InputStream is,EffekseerEmitterControl dest) throws IOException {
+    public static LoadedEffect loadEffect(AssetManager am, String path, InputStream is) throws IOException {
         byte data[]=EffekseerUtils.readAll(is);
-        return loadEffect(am,path,data,dest);
+        return loadEffect(am,path,data);
     }
 
-    public static EffekseerEmitterControl loadEffect(AssetManager am, String path, byte[] data, EffekseerEmitterControl dest) throws IOException {
+    public static LoadedEffect loadEffect(AssetManager am, String path, byte[] data) throws IOException {
         
         byte bytes[]=data;
 
@@ -427,15 +429,23 @@ public class Effekseer{
 
         // Sounds?
         
-        State state=getState();
-        if(dest==null){
-            dest= new EffekseerEmitterControl();
-        }
-        dest.setEffect(effectCore);
-        dest.setPath(path);
-        state.emitters.put(dest,new EmitterState());
+        // State state=getState();
 
-        return dest;
+        LoadedEffect e=new LoadedEffect();
+        e.core=effectCore;
+        e.path=path;
+   
+
+        return e;
     }
 
+    public static void registerEmitter(EffekseerEmitterControl e){
+        State state=getState();
+        state.emitters.put(e,new EmitterState());
+    }
+
+    // public static void unregisterEmitter(EffekseerEmitterControl e){
+    //     State state=getState();
+    //     state.emitters.remove(e);
+    // }
 }

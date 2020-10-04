@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
 import com.jme.effekseer.driver.fun.EffekseerEmissionDriver;
+import com.jme3.asset.AssetManager;
 import com.jme3.export.InputCapsule;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
@@ -40,6 +41,13 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
 
     public EffekseerEmitterControl(){}
     
+    public EffekseerEmitterControl(AssetManager am,String path){
+        this();
+        EffekseerEffectKey k=new EffekseerEffectKey(path);
+        LoadedEffect ef=am.loadAsset(k);
+        setEffect(ef.core);
+        setPath(ef.path);
+    }
 
     protected void setEffect(EffekseerEffectCore core){
         this.effekt=core;
@@ -148,7 +156,13 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         driver=(EffekseerEmissionDriver)c.readSavable("driver",null);
         play=c.readBoolean("playing",true);    
         scale=c.readFloat("playing",1f);    
-        if(effektPath!=null)Effekseer.loadEffect(im.getAssetManager(),effektPath,this);
+        if(effektPath!=null){
+            EffekseerEffectKey k=new EffekseerEffectKey(effektPath);
+            LoadedEffect ef=im.getAssetManager().loadAsset(k);
+            setEffect(ef.core);
+            setPath(ef.path);
+            if(spatial!=null)Effekseer.registerEmitter(this);
+        }
     }
 
     @Override
@@ -164,6 +178,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
 
     @Override
     public void cloneFields( Cloner cloner, Object original ) { 
+        super.cloneFields(cloner, original);
         this.driver = cloner.clone(driver);
     }
          
@@ -172,6 +187,9 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         super.setSpatial(spatial);
         if(spatial==null){
             stop();
+            // Effekseer.unregisterEmitter(this);
+        }else{
+            Effekseer.registerEmitter(this);
         }
     }
 
@@ -181,5 +199,8 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     }
 
 
+    public EffekseerEffectCore getEffekt(){
+        return effekt;
+    }
     
 }
