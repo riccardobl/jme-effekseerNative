@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.jme.effekseer.driver.fun.DestructionListener;
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSetterFun;
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSupplier;
 import com.jme.effekseer.driver.fun.EffekseerEmissionCallback;
@@ -31,6 +32,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     protected EffekseerEmitterShape shape=new EffekseerPointFollowingSpatialShape();
     protected EffekseerSpawner spawner=new EffekseerGenericSpawner();
     protected EffekseerDynamicInputSupplier dynamicInputSupplier=new EffekseerGenericDynamicInputSupplier();
+    protected DestructionListener destructionListener=(i)->{};
 
 
 
@@ -42,6 +44,16 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
          shape=v;
          return this;
     }
+
+    public EffekseerEmissionDriverGeneric onDestruction(DestructionListener l){
+        destructionListener=l;
+        return this;
+    }
+
+    public DestructionListener onDestruction(){
+        return destructionListener;
+    }
+
 
 
     public EffekseerSpawner spawner(){
@@ -119,6 +131,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
 
     @Override
     public void destroy(int handle) {
+        destructionListener.onDestruction(handle);
         EffekseerEmissionCallback callback=instances.remove(handle);
         if(callback != null){
             callback.call(CallbackType.DESTROY_HANDLE,handle);

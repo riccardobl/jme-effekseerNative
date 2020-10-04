@@ -78,6 +78,7 @@ public class Effekseer{
             v1SpatialList.add(null);
         }
 
+        boolean asyncInit=false;
         boolean isNew=true;
         boolean hasDepth;
         Texture2D sceneData;
@@ -112,7 +113,10 @@ public class Effekseer{
 
     public static void setAsync(int threads) {
         State state=getState();
-        state.core.LaunchWorkerThreads(threads);
+        if(!state.asyncInit){
+            state.core.LaunchWorkerThreads(threads);
+            state.asyncInit=true;
+        }
     }
 
     /**

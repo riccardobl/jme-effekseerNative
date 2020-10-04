@@ -70,7 +70,8 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     }
 
     protected boolean isChildOf(Spatial spatial,Spatial parent){
-        if(spatial==parent)return true;
+        if(spatial==null)return false;
+        else if(spatial==parent)return true;
         else {
             Spatial nextS=spatial.getParent();
             if(nextS==null)return false;
