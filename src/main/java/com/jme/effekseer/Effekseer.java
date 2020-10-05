@@ -352,18 +352,18 @@ public class Effekseer{
 
     public static void pauseEffect(int e,boolean v){
         State state=getState();
-         state.core.SetPaused(e,v);
+        if(state.core.Exists(e))   state.core.SetPaused(e,v);
     }
 
     public static void stopEffect(int e){
         State state=getState();
-         state.core.Stop(e);
+        if(state.core.Exists(e))  state.core.Stop(e);
     }
 
 
     public static  void setEffectVisibility(int e,boolean v){
         State state=getState();
-         state.core.SetShown(e,v);
+        if(state.core.Exists(e)) state.core.SetShown(e,v);
     }
 
     public static boolean isEffectAlive(int e){
@@ -373,18 +373,18 @@ public class Effekseer{
 
     public static void setEffectLayer(int handle,int layer){
         State state=getState();
-        state.core.SetLayer(handle,layer);
+        if(state.core.Exists(handle))  state.core.SetLayer(handle,layer);
     }
 
     public static void setDynamicInput(int e,int index,float value){
         State state=getState();
-        state.core.SetDynamicInput(e,index,value);
+        if(state.core.Exists(e))  state.core.SetDynamicInput(e,index,value);
     }
 
 
     public static void setEffectTransform(int handler,Transform tr){
         State state=getState();
-
+        if(!state.core.Exists(handler))  return;
         state.m4.setTranslation(tr.getTranslation());
         state.m4.setRotationQuaternion(tr.getRotation());
         state.m4.setScale(tr.getScale());
