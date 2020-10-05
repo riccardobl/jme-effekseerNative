@@ -35,11 +35,14 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     protected String effektPath;
     protected boolean play=true;
     protected float scale=1f;
+    protected transient int layer=0;
 
     protected EffekseerEmissionDriver driver=new EffekseerEmissionDriverGeneric();
 
 
-    public EffekseerEmitterControl(){}
+    public EffekseerEmitterControl(){
+        Effekseer.registerEmitter(this);
+    }
     
     public EffekseerEmitterControl(AssetManager am,String path){
         this();
@@ -78,6 +81,17 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
             return isChildOf(nextS,parent);
         }
     }
+
+    public void setLayer(int id){
+        this.layer=id;
+        this.instances.stream().forEach(i->Effekseer.setEffectLayer(i, layer));
+
+    }
+
+    public int getLayer(){
+        return this.layer;
+    }
+
     public void setScale(float v){
         scale=v;
     }
@@ -93,6 +107,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         play=false;
     }
 
+    
 
     public void play(){
         this.instances.stream().forEach(i->Effekseer.pauseEffect(i,false));
@@ -103,16 +118,21 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     public void setEnabled(boolean enabled) {
         super.setEnabled(enabled);
         for(int i:instances){
-            Effekseer.setEffectVisibility(i, enabled);
             Effekseer.pauseEffect(i, !enabled);
+            Effekseer.setEffectVisibility(i, enabled);
         }        
     }
+
 
     @Override
     protected void controlUpdate(float tpf) {
         if(!play)return;
-        int newHandle=driver.tryEmit(()->Effekseer.playEffect(effekt));
-        if(newHandle>=0)   instances.add(newHandle);
+        Integer newHandle=driver.tryEmit(()->Effekseer.playEffect(effekt));
+        
+        if(newHandle!=null){
+            instances.add(newHandle);
+           Effekseer.setEffectLayer(newHandle, layer);
+        }  
 
         for(int i=0;i<instances.size();i++){
             Integer handle=instances.get(i);
@@ -162,7 +182,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
             LoadedEffect ef=im.getAssetManager().loadAsset(k);
             setEffect(ef.core);
             setPath(ef.path);
-            if(spatial!=null)Effekseer.registerEmitter(this);
+            Effekseer.registerEmitter(this);
         }
     }
 
@@ -189,8 +209,6 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         if(spatial==null){
             stop();
             // Effekseer.unregisterEmitter(this);
-        }else{
-            Effekseer.registerEmitter(this);
         }
     }
 

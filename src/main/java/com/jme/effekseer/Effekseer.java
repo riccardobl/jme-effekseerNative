@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -70,6 +71,7 @@ public class Effekseer{
         AssetManager am;
         final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
 
+        WeakReference<Spatial> bitLayers[]=new WeakReference[30];
 
         final float v16[]=new float[16];
         final Matrix4f m4=new Matrix4f();
@@ -157,7 +159,7 @@ public class Effekseer{
     public static void update(float tpf) {
         State state=getState();
         float t=tpf / (1.0f / 60.0f);
-        state.core.Update(t);
+        state.core.Update(t);        
     }
 
     private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast,boolean hasDepth) {
@@ -220,35 +222,56 @@ public class Effekseer{
 
 
 
-    public static void beginScene() {
-        beginScene((Collection<Spatial>)null);
+    public static void beginRender() {
+        beginRender((Collection<Spatial>)null);
     }
 
     /**
      * Select a scene for rendering and update.
      * @param parent Only effects that are child of the parent spatial (or attached to the parent spatial itself) will be updated and rendered
      */
-    public static void beginScene(Spatial parent) {
+    public static void beginRender(Spatial parent) {
         State state=getState();
         state.v1SpatialList.set(0,parent);
-        beginScene(state.v1SpatialList);
+        beginRender(state.v1SpatialList);
+    }
+
+
+
+
+    private static int getLayer(Spatial parent){
+        Integer layerId=parent.getUserData("_effekseer_layer");
+        if(layerId==null){
+            State state=getState();
+            for(int i=0;i<30;i++){
+                if(state.bitLayers[i]==null||state.bitLayers[i].get()==null){
+                    state.bitLayers[i]=new WeakReference<Spatial>(parent);
+                    layerId=i+2;
+                    break;               
+                }
+            }
+            parent.setUserData("_effekseer_layer",layerId);
+        }
+        assert layerId!=null : "Too many layers?";
+        return layerId;
     }
 
     /**
      * Select a scene for rendering and update. Same as beginScene(Spatial) but accepts multiple parents.
      * @param parent Only effects that are child of the parent spatials (or attached to the parent spatials) will be updated and rendered
      */
-    public static void beginScene(Collection<Spatial> parents) {
+    public static void beginRender(Collection<Spatial> parents) {
         State state=getState();
         state.currentSceneParents=parents;
         if(parents==null)return;        
+
+
         for(Entry<EffekseerEmitterControl,EmitterState> e:state.emitters.entrySet()){
-            EffekseerEmitterControl emitter=e.getKey();
-            EmitterState emitterState=e.getValue();            
-            emitterState.oldVisibleFlag=emitter.isEnabled();
-            boolean currentFlag= parents.stream().anyMatch(p->emitter.isChildOf(p));  
-            if(emitter.isEnabled()!=currentFlag){
-                emitter.setEnabled(currentFlag);
+            EffekseerEmitterControl emitter=e.getKey();           
+            Spatial parent= parents.stream().filter(p->emitter.isChildOf(p)).findAny().orElse(null);  
+            if(parent!=null){
+                int l=getLayer(parent);
+                emitter.setLayer(l);
             }
         }
     }
@@ -256,17 +279,9 @@ public class Effekseer{
     /**
      * This must be called after the rendering, to deselect the scene and reset temporary states.
      */
-    public static void endScene(){
+    public static void endRender(){
         State state=getState();
-        if(state.currentSceneParents==null)return;
-        for(Entry<EffekseerEmitterControl,EmitterState> e:state.emitters.entrySet()){
-            EffekseerEmitterControl emitter=e.getKey();
-            EmitterState emitterState=e.getValue();
-            if(emitter.isEnabled()!=emitterState.oldVisibleFlag){
-                emitter.setEnabled(emitterState.oldVisibleFlag);               
-                emitterState.oldVisibleFlag=emitter.isEnabled();
-            }
-        }
+        state.currentSceneParents=null;
     }
 
     @Deprecated
@@ -321,8 +336,12 @@ public class Effekseer{
             cam.getViewMatrix().get(state.v16,true);
             state.core.SetCameraMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15]  );
         }
-        state.core.DrawBack();
-        state.core.DrawFront();
+    
+
+        int layer=0;
+        for(Spatial p:state.currentSceneParents) layer|=1<<getLayer(p);
+        state.core.DrawBack(layer);
+        state.core.DrawFront(layer);
 
     }
 
@@ -350,6 +369,11 @@ public class Effekseer{
     public static boolean isEffectAlive(int e){
         State state=getState();
         return state.core.Exists(e);
+    }
+
+    public static void setEffectLayer(int handle,int layer){
+        State state=getState();
+        state.core.SetLayer(handle,layer);
     }
 
     public static void setDynamicInput(int e,int index,float value){

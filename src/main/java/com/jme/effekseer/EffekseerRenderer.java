@@ -1,7 +1,9 @@
 package com.jme.effekseer;
+
 import java.lang.reflect.Field;
 import java.util.EnumSet;
 
+import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -21,15 +23,18 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
 
 public class EffekseerRenderer {
-    public static EffekseerRenderer addToViewPort(ViewPort vp,AssetManager am,boolean sRGB){
-        return addToViewPort(vp,am,sRGB,false,false);
+    public static EffekseerRenderer addToViewPort(AppStateManager stateManager,ViewPort vp,AssetManager am,boolean sRGB){
+        
+        return addToViewPort(stateManager,vp,am,sRGB,false,false);
     }
 
-    public static EffekseerRenderer addToViewPort(ViewPort vp,AssetManager am,boolean sRGB,boolean is2D){
-        return addToViewPort(vp,am,sRGB,is2D,false);
+    public static EffekseerRenderer addToViewPort(AppStateManager stateManager,ViewPort vp,AssetManager am,boolean sRGB,boolean is2D){
+        return addToViewPort(stateManager,vp,am,sRGB,is2D,false);
     }
 
-    public static EffekseerRenderer addToViewPort(ViewPort vp,AssetManager am,boolean sRGB,boolean is2D,boolean useOffscreen){
+    public static EffekseerRenderer addToViewPort(AppStateManager stateManager,ViewPort vp,AssetManager am,boolean sRGB,boolean is2D,boolean useOffscreen){
+        if(stateManager.getState(EffekseerUpdater.class)==null)    stateManager.attach(new EffekseerUpdater());
+
         FilterPostProcessor fpp=null;
 
         if(!vp.getName().equals("Gui Default")){ // Detect when attached to default guiViewPort in jme.
@@ -181,11 +186,9 @@ public class EffekseerRenderer {
 
          FrameBuffer oldFb=EffekseerUtils.bindFrameBuffer(renderManager,sceneBuffer);
 
-        Effekseer.beginScene(viewPort.getScenes());
-        Effekseer.update(tpf);
-
+        Effekseer.beginRender(viewPort.getScenes());
         Effekseer.render(renderManager.getRenderer(),cam,sceneBuffer,depth,particlesHardness,particlesContrast,is2D);
-        Effekseer.endScene();
+        Effekseer.endRender();
 
         EffekseerUtils.bindFrameBuffer(renderManager,oldFb);
 

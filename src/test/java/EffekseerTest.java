@@ -32,7 +32,7 @@ public class EffekseerTest extends SimpleApplication{
         FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
         viewPort.addProcessor(fpp);
 
-        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(viewPort, assetManager,settings.isGammaCorrection());
+        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(stateManager, viewPort, assetManager,settings.isGammaCorrection());
         effekseerRenderer.setAsync(1);
 
 

@@ -118,15 +118,15 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     }
 
     @Override
-    public int tryEmit(EffekseerEmitFun emitInstanceAndGetHandle) {
+    public Integer tryEmit(EffekseerEmitFun emitInstanceAndGetHandle) {
         EffekseerEmissionCallback callback=spawner.spawn(tpf);
         if(callback != null){
-            int handle=emitInstanceAndGetHandle.emit();
+            Integer handle=emitInstanceAndGetHandle.emit();
             callback.call(CallbackType.SET_HANDLE,handle);
             instances.put(handle,callback);
             return handle;
         }
-        return -1;
+        return null;
     }
 
     @Override

@@ -32,7 +32,7 @@ public class EffekseerTestGUI extends SimpleApplication{
     public void simpleInitApp() {
 
    
-        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(guiViewPort,assetManager, settings.isGammaCorrection());
+        EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(stateManager, guiViewPort,assetManager, settings.isGammaCorrection());
  
         // Load an effect
         EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("Effekts/prova.efkefc");
