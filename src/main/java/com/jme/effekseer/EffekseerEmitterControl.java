@@ -97,12 +97,14 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     }
 
     public void stop(){
+        if(!play)return;
         this.instances.stream().forEach(i->Effekseer.stopEffect(i));
         this.instances.clear();
         play=false;
     }
 
     public void pause(){
+        if(!play)return;
         this.instances.stream().forEach(i->Effekseer.pauseEffect(i,true));
         play=false;
     }
@@ -110,6 +112,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     
 
     public void play(){
+        if(play)return;
         this.instances.stream().forEach(i->Effekseer.pauseEffect(i,false));
         play=true;
     }
