@@ -3,13 +3,14 @@ package com.jme.effekseer.driver;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
-import com.jme.effekseer.driver.fun.DestructionListener;
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSetterFun;
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSupplier;
 import com.jme.effekseer.driver.fun.EffekseerEmissionCallback;
 import com.jme.effekseer.driver.fun.EffekseerEmissionCallback.CallbackType;
 import com.jme.effekseer.driver.fun.EffekseerEmissionDriver;
+import com.jme.effekseer.driver.fun.EffekseerEmissionUpdateListener;
 import com.jme.effekseer.driver.fun.EffekseerEmitFun;
 import com.jme.effekseer.driver.fun.EffekseerEmitterShape;
 import com.jme.effekseer.driver.fun.EffekseerSpawner;
@@ -32,7 +33,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     protected EffekseerEmitterShape shape=new EffekseerPointFollowingSpatialShape();
     protected EffekseerSpawner spawner=new EffekseerGenericSpawner();
     protected EffekseerDynamicInputSupplier dynamicInputSupplier=new EffekseerGenericDynamicInputSupplier();
-    protected DestructionListener destructionListener=(i)->{};
+    protected EffekseerEmissionUpdateListener  updateListener=null;
 
 
 
@@ -45,15 +46,10 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
          return this;
     }
 
-    public EffekseerEmissionDriverGeneric onDestruction(DestructionListener l){
-        destructionListener=l;
-        return this;
-    }
 
-    public DestructionListener onDestruction(){
-        return destructionListener;
+    public void setUpdateListener(EffekseerEmissionUpdateListener up){
+        this.updateListener=up;
     }
-
 
 
     public EffekseerSpawner spawner(){
@@ -81,6 +77,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
         out.write(shape,"shape",null);
         out.write(spawner,"emit",null);
         out.write(dynamicInputSupplier,"inputSetter",null);        
+        out.write(updateListener,"updateListener",null);
     }
 
     @Override
@@ -89,7 +86,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
         shape=(EffekseerEmitterShape)in.readSavable("shape",null);
         spawner=(EffekseerSpawner)in.readSavable("emit",null);
         dynamicInputSupplier=(EffekseerDynamicInputSupplier)in.readSavable("inputSetter",null);
-
+        updateListener=(EffekseerEmissionUpdateListener)in.readSavable("updateListener",null);
     }
 
     @Override
@@ -115,6 +112,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     @Override
     public void update(float tpf) {
         this.tpf=tpf;
+        if(updateListener!=null)updateListener.onUpdate(tpf);
     }
 
     @Override
@@ -131,12 +129,13 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
 
     @Override
     public void destroy(int handle) {
-        destructionListener.onDestruction(handle);
         EffekseerEmissionCallback callback=instances.remove(handle);
         if(callback != null){
             callback.call(CallbackType.DESTROY_HANDLE,handle);
         }
     }
+
+
 
     @Override
     public Transform getInstanceTransform(int handle, Spatial sp,float scale) {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
 import com.jme.effekseer.driver.fun.EffekseerEmissionDriver;
@@ -41,7 +42,6 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
 
 
     public EffekseerEmitterControl(){
-        Effekseer.registerEmitter(this);
     }
     
     public EffekseerEmitterControl(AssetManager am,String path){
@@ -113,6 +113,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
 
     public void play(){
         if(play)return;
+        assert garbagePile!=null:"Emitter not registered!";
         this.instances.stream().forEach(i->Effekseer.pauseEffect(i,false));
         play=true;
     }
@@ -130,6 +131,8 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
     @Override
     protected void controlUpdate(float tpf) {
         if(!play)return;
+        assert garbagePile!=null:"Emitter not registered!";
+        
         Integer newHandle=driver.tryEmit(()->Effekseer.playEffect(effekt));
         
         if(newHandle!=null){
@@ -153,7 +156,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         }
 
         driver.update(tpf);
-
+        
     }
 
     public Collection<Integer> getHandles() {
@@ -185,7 +188,7 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
             LoadedEffect ef=im.getAssetManager().loadAsset(k);
             setEffect(ef.core);
             setPath(ef.path);
-            Effekseer.registerEmitter(this);
+            // Effekseer.registerEmitter(this);
         }
     }
 
@@ -212,17 +215,25 @@ public class EffekseerEmitterControl extends AbstractControl implements Savable{
         if(spatial==null){
             stop();
             // Effekseer.unregisterEmitter(this);
+        }else{
+            Effekseer.registerEmitter(this);
         }
     }
 
     @Override
     public void finalize(){        
-        stop();
+        garbagePile.add(instances);
     }
 
 
     public EffekseerEffectCore getEffekt(){
         return effekt;
     }
+
+
+    ConcurrentLinkedQueue<List<Integer>> garbagePile;
+	void setGarbagePile(ConcurrentLinkedQueue<List<Integer>> garbagePile) {
+        this.garbagePile=garbagePile;
+	}
     
 }

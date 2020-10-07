@@ -9,5 +9,10 @@ public class EffekseerEffectKey extends AssetKey<LoadedEffect>{
         super(path);
     }
 
+    @Override
+    public boolean equals(Object other){
+        return other instanceof EffekseerEffectKey&&super.equals(other);
+    }
+
 
 }

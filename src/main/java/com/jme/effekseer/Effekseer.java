@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
@@ -66,27 +67,29 @@ public class Effekseer{
     }
 
     private static class State{
-        EffekseerManagerCore core;
-        Collection<Spatial> currentSceneParents;
-        AssetManager am;
-        final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
+        private EffekseerManagerCore core;
+        private Collection<Spatial> currentSceneParents;
+        private AssetManager am;
+        private final Map<EffekseerEmitterControl,EmitterState> emitters=new WeakHashMap<EffekseerEmitterControl,EmitterState>();
 
-        WeakReference<Spatial> bitLayers[]=new WeakReference[30];
+        private WeakReference<Spatial> bitLayers[]=new WeakReference[30];
 
-        final float v16[]=new float[16];
-        final Matrix4f m4=new Matrix4f();
-        final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
+        private final float v16[]=new float[16];
+        private final Matrix4f m4=new Matrix4f();
+        private final List<Spatial> v1SpatialList=new ArrayList<Spatial>(1);
         {
             v1SpatialList.add(null);
         }
 
-        boolean asyncInit=false;
-        boolean isNew=true;
-        boolean hasDepth;
-        Texture2D sceneData;
-        final Vector2f frustumNearFar=new Vector2f();
-        final Vector2f resolution=new Vector2f();
-        float particlesHardness,particlesContrast;
+        private boolean asyncInit=false;
+        private boolean isNew=true;
+        private boolean  hasDepth;
+        private Texture2D sceneData;
+        private final Vector2f frustumNearFar=new Vector2f();
+        private final Vector2f resolution=new Vector2f();
+        private float particlesHardness,particlesContrast;
+        
+        private final ConcurrentLinkedQueue<List<Integer>> garbagePile=new ConcurrentLinkedQueue<List<Integer>> ();
     }
 
     private static ThreadLocal<State> state=new ThreadLocal<State>(){
@@ -158,6 +161,10 @@ public class Effekseer{
      */
     public static void update(float tpf) {
         State state=getState();
+        while(state.garbagePile.size()!=0){
+            List<Integer>garbage=state.garbagePile.poll();
+            for(int i:garbage)stopEffect(i);
+        }
         float t=tpf / (1.0f / 60.0f);
         state.core.Update(t);        
     }
@@ -470,6 +477,7 @@ public class Effekseer{
     public static void registerEmitter(EffekseerEmitterControl e){
         State state=getState();
         state.emitters.put(e,new EmitterState());
+        e.setGarbagePile(state.garbagePile);
     }
 
     // public static void unregisterEmitter(EffekseerEmitterControl e){
