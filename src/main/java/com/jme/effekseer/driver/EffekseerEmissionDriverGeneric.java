@@ -1,9 +1,10 @@
 package com.jme.effekseer.driver;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.Set;
 
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSetterFun;
 import com.jme.effekseer.driver.fun.EffekseerDynamicInputSupplier;
@@ -28,6 +29,7 @@ import com.jme3.util.clone.Cloner;
 public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
 
     protected transient Map<Integer,EffekseerEmissionCallback> instances=new HashMap<Integer,EffekseerEmissionCallback>();
+    protected transient Set<Integer> instanceKeysRO=Collections.unmodifiableSet(instances.keySet());
     protected transient float tpf=0;
 
     protected EffekseerEmitterShape shape=new EffekseerPointFollowingSpatialShape();
@@ -112,7 +114,7 @@ public class EffekseerEmissionDriverGeneric implements EffekseerEmissionDriver{
     @Override
     public void update(float tpf) {
         this.tpf=tpf;
-        if(updateListener!=null)updateListener.onUpdate(tpf);
+        if(updateListener!=null)updateListener.onUpdate(tpf,instanceKeysRO);
     }
 
     @Override
