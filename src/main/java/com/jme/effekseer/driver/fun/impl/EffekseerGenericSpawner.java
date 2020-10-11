@@ -65,24 +65,44 @@ public class EffekseerGenericSpawner implements EffekseerSpawner{
 
     }
 
-  
+    private boolean spawnNow=false;
+    public EffekseerGenericSpawner spawnNow(){
+        spawnNow=true;
+        return this;
+    }
+
+    private boolean autoSpawner=true;
+    public EffekseerGenericSpawner autoSpawner(boolean v){
+        autoSpawner=v;
+        return this;
+    }
+
+    public boolean autoSpawner(){
+        return autoSpawner;
+    }
 
     @Override
     public EffekseerEmissionCallback spawn(float tpf) {
-        if(emittedFirst&&!loop)return null;
         if(instances > maxInstances) return null;
 
+        if(!spawnNow){
+            if(!autoSpawner)return null;
+            if(emittedFirst&&!loop)return null;
 
-        if(Float.isNaN(delta)) delta=initialDelay;
 
-        delta-=tpf;
-        if(delta<=0){
-            delta=FastMath.nextRandomFloat() * (maxDelay - minDelay) + minDelay;
+            if(Float.isNaN(delta)) delta=initialDelay;
+
+            delta-=tpf;
+            if(delta<=0){
+                delta=FastMath.nextRandomFloat() * (maxDelay - minDelay) + minDelay;
+            }else{
+                return null;
+            }
+
+            emittedFirst=true;
         }else{
-            return null;
+            spawnNow=false;
         }
-
-        emittedFirst=true;
 
         return (type, handle) -> {
             if(type == CallbackType.DESTROY_HANDLE){
