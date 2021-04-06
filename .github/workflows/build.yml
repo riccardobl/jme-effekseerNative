@@ -47,14 +47,8 @@ jobs:
         name: maven
         path: dist/maven
             
-    - name: Deploy to bintray
+    - name: Deploy to github packages
       if: github.event_name == 'release'
       run: |
           source .github/actions/tools/uploadToMaven.sh
-          if [ "${{ secrets.BINTRAY_MAVEN_REPO }}" = "" ];
-          then
-            echo "Configure the following secrets to enable bintray deployment"
-            echo "BINTRAY_MAVEN_REPO, BINTRAY_USER, BINTRAY_APIKEY"
-          else
-            uploadAllToMaven dist/maven/ https://api.bintray.com/maven/${{ secrets.BINTRAY_MAVEN_REPO }} ${{ secrets.BINTRAY_USER }} ${{ secrets.BINTRAY_APIKEY }} "https://github.com/${GITHUB_REPOSITORY}" "${{ secrets.BINTRAY_LICENSE }}"
-          fi
+          uploadAllToMaven dist/maven/ https://maven.pkg.github.com/${GITHUB_REPOSITORY} token ${{ secrets.GITHUB_TOKEN }} 

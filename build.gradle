@@ -1,21 +1,20 @@
+plugins {
+    id "io.github.0ffz.github-packages" version "1.2.1"
+}
+
 apply plugin: 'maven'
 apply plugin: 'java-library'
 
-
-group = "com.jme.effekseer"
+group = "wf.frk"
 version= project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
 
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
 repositories {
-    jcenter()
-    maven {  
-		  url "https://jitpack.io" 
-    }
-    maven {
-         url  "https://dl.bintray.com/riccardo/effekseer" 
-    }
+    mavenCentral()
+    maven {  url "https://jitpack.io" }
+    maven githubPackage.invoke("riccardobl")
 }
 
 dependencies {
@@ -36,9 +35,9 @@ dependencies {
 
 compileJava.doLast {
 	def buildDate = new Date().format('yyyy-MM-dd HHmm')
-	println "Writing jme-effekseerNative.build.date: " + buildDate
-	new File(destinationDir, "jme-effekseerNative.build.date").text = buildDate
-	new File(destinationDir, "jme-effekseerNative.build.version").text = version
+	println "Writing jme-effekseer-native.build.date: " + buildDate
+	new File(destinationDir, "jme-effekseer-native.build.date").text = buildDate
+	new File(destinationDir, "jme-effekseer-native.build.version").text = version
 }
 
 task testJar(type: Jar) {

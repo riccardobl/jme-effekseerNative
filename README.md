@@ -19,12 +19,14 @@ Missing features:
 
 ## Gradle 
 ```gradle
+plugins {
+    id "io.github.0ffz.github-packages" version "1.2.1"
+}
 repositories {
-    maven { url 'https://jitpack.io' }    
-    maven { url  "https://dl.bintray.com/riccardo/effekseer" }
+    maven githubPackage.invoke("riccardobl")
 }
 dependencies {
-    implementation 'com.github.riccardobl:jme-effekseerNative:-SNAPSHOT'
+    implementation 'wf.frk:jme-effekseer-native:0.3'
 }
 
 ```
