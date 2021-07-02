@@ -34,7 +34,7 @@ jobs:
   
 
         mkdir -p dist/maven
-        gradle -Pin_version="$VERSION" build testJar install -Dmaven.repo.local="$PWD/dist/maven"
+        gradle -Pin_version="$VERSION" build testJar publishAllPublicationsToDistRepository
     
     
     - uses: actions/upload-artifact@v2

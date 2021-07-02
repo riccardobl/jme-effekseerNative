@@ -2,11 +2,9 @@ plugins {
     id "io.github.0ffz.github-packages" version "1.2.1"
 }
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'java-library'
 
-group = "wf.frk"
-version= project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
 
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
@@ -16,6 +14,28 @@ repositories {
     mavenCentral()
     maven {  url "https://jitpack.io" }
 }
+
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId =  "wf.frk"
+            artifactId = rootProject.name
+            version = project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
+
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url = gradle.rootProject.projectDir.absolutePath + '/dist/maven'            
+            name="dist"
+        }
+    }
+}
+
+
 
 dependencies {
     api "effekseer:effekseer-native:test6"
