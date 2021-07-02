@@ -12,13 +12,13 @@ targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
 repositories {
+    maven githubPackage.invoke("riccardobl")
     mavenCentral()
     maven {  url "https://jitpack.io" }
-    maven githubPackage.invoke("riccardobl")
 }
 
 dependencies {
-    api "effekseer:effekseer-native:jme1.1.9"
+    api "effekseer:effekseer-native:test6"
 
     compileOnly "org.jmonkeyengine:jme3-core:3.2.3-stable"
     compileOnly "org.jmonkeyengine:jme3-desktop:3.2.3-stable"

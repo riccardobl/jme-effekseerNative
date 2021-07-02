@@ -83,11 +83,7 @@ public class Effekseer{
 
         private boolean asyncInit=false;
         private boolean isNew=true;
-        private boolean  hasDepth;
-        private Texture2D sceneData;
-        private final Vector2f frustumNearFar=new Vector2f();
-        private final Vector2f resolution=new Vector2f();
-        private float particlesHardness,particlesContrast;
+ 
         
         private final ConcurrentLinkedQueue<List<Integer>> garbagePile=new ConcurrentLinkedQueue<List<Integer>> ();
     }
@@ -169,64 +165,6 @@ public class Effekseer{
         state.core.Update(t);        
     }
 
-    private static Texture2D getSceneData(GLRenderer renderer, Camera cam, float particlesHardness, float particlesContrast,boolean hasDepth) {
-        State state=getState();
-
-        boolean rebuildSceneData=false;
-        if(state.sceneData == null ||state.hasDepth!=hasDepth ||state.frustumNearFar.x != cam.getFrustumNear() || state.frustumNearFar.y != cam.getFrustumFar() || state.resolution.x != cam.getWidth() || state.resolution.y != cam.getHeight() || state.particlesHardness != particlesHardness || state.particlesContrast != particlesContrast){
-            rebuildSceneData=true;
-        }
-
-        if(rebuildSceneData){
-            state.frustumNearFar.x=cam.getFrustumNear();
-            state.frustumNearFar.y=cam.getFrustumFar();
-            state.resolution.x=cam.getWidth();
-            state.resolution.y=cam.getHeight();
-            state.particlesHardness=particlesHardness;
-            state.particlesContrast=particlesContrast;
-            state.hasDepth=hasDepth;
-
-            if(state.sceneData == null){
-                Image img=null;
-                if(renderer.getCaps().contains(Caps.FloatTexture)){
-                    ByteBuffer data=BufferUtils.createByteBuffer(3/*w*/ * 1 /*h*/ * 3 /*components*/ * 4 /*B x component*/ );
-                    img=new Image(Format.RGB32F,3,1,data,ColorSpace.Linear);
-                }else{
-                    ByteBuffer data=BufferUtils.createByteBuffer(3/*w*/ * 1 /*h*/ * 3 /*components*/ * 2 /*B x component*/ );
-                    img=new Image(Format.RGB16F_to_RGB111110F,3,1,data,ColorSpace.Linear);
-                }
-                state.sceneData=new Texture2D(img);
-            }
-
-            if(renderer.getCaps().contains(Caps.FloatTexture)){
-                ByteBuffer data=state.sceneData.getImage().getData(0);
-                data.rewind();
-                data.putFloat(state.resolution.x);
-                data.putFloat(state.resolution.y);
-                data.putFloat(particlesHardness);
-                data.putFloat(state.hasDepth&&particlesHardness<1000?state.frustumNearFar.x:-1);
-                data.putFloat(state.hasDepth&&particlesHardness<1000?state.frustumNearFar.y:-1);
-                data.putFloat(particlesContrast);
-                data.rewind();
-            }else if(renderer.getCaps().contains(Caps.PackedFloatTexture)){
-                ByteBuffer data=state.sceneData.getImage().getData(0);
-                data.rewind();
-                data.putShort(FastMath.convertFloatToHalf(state.resolution.x));
-                data.putShort(FastMath.convertFloatToHalf(state.resolution.y));
-                data.putShort(FastMath.convertFloatToHalf(particlesHardness));
-                data.putShort(state.hasDepth&&particlesHardness<1000?FastMath.convertFloatToHalf(state.frustumNearFar.x):-1);
-                data.putShort(state.hasDepth&&particlesHardness<1000?FastMath.convertFloatToHalf(state.frustumNearFar.y):-1);
-                data.putShort(FastMath.convertFloatToHalf(particlesContrast));
-                data.rewind();
-            }else{
-                throw new RendererException("Unsupported Platform. FloatTexture or PackedFloatTexture required for jme-effekseerNative.");
-            }
-            state.sceneData.getImage().setUpdateNeeded();
-        }
-
-        return state.sceneData;
-    }
-
 
 
     public static void beginRender() {
@@ -291,15 +229,6 @@ public class Effekseer{
         state.currentSceneParents=null;
     }
 
-    @Deprecated
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth) {
-        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,false) ;
-    }
-
-    @Deprecated
-    public static void render(Renderer renderer,Camera cam,FrameBuffer renderTarget,Texture sceneDepth,boolean isGUI) {
-        render( renderer, cam, renderTarget, sceneDepth,0.1f,2.0f,isGUI) ;
-    }
     
 
     
@@ -317,10 +246,9 @@ public class Effekseer{
         Renderer renderer,
         Camera cam,
         FrameBuffer renderTarget,
+        Texture sceneColor,
         Texture sceneDepth,
-        float particlesHardness,
-        float particlesContrast,
-        boolean isGUI
+        boolean isOrthographic
     ) {
         if(!(renderer instanceof GLRenderer))   throw new RuntimeException("Only GLRenderer supported at this moment");
         assert sceneDepth==null||sceneDepth.getImage().getMultiSamples()<=1:"Multisampled depth is not supported!";
@@ -330,18 +258,26 @@ public class Effekseer{
         GLRenderer gl=(GLRenderer)renderer; 
          
         gl.setFrameBuffer(renderTarget);
-     
-        if(sceneDepth!=null)gl.setTexture(12, sceneDepth);
-        gl.setTexture(13, getSceneData(gl,cam,particlesHardness,particlesContrast,sceneDepth!=null));
-                        
-        if(isGUI){
+
+
+        if(isOrthographic){
             state.core.SetViewProjectionMatrixWithSimpleWindow(cam.getWidth(),cam.getHeight());
+            state.core.UnsetDepth();
+            state.core.UnsetBackground();
         }else{
             cam.getProjectionMatrix().get(state.v16,true);
             state.core.SetProjectionMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15] );
             
+            cam.getProjectionMatrix().get(state.v16,true);
+
             cam.getViewMatrix().get(state.v16,true);
             state.core.SetCameraMatrix(state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11],state.v16[12],state.v16[13],state.v16[14],state.v16[15]  );
+
+            if(sceneDepth!=null)state.core.SetDepth(sceneDepth.getImage().getId(),sceneDepth.getImage().hasMipmaps());
+            else state.core.UnsetDepth();
+
+            if(sceneColor!=null) state.core.SetBackground(sceneColor.getImage().getId(),sceneColor.getImage().hasMipmaps());
+            else state.core.UnsetBackground();
         }
     
 

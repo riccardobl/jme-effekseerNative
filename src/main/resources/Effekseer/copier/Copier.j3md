@@ -1,0 +1,25 @@
+MaterialDef  Copier {
+
+    MaterialParameters {
+        Int NumSamples        
+        Texture2D Color
+        Texture2D Depth
+
+    }
+
+    Technique {
+        VertexShader  GLSL100 GLSL150:   Effekseer/copier/Copier.vert
+        FragmentShader  GLSL100 GLSL150 : Effekseer/copier/Copier.frag
+
+        WorldParameters {
+        }
+
+        Defines {
+            COLOR: Color
+            DEPTH: Depth
+            NUM_SAMPLES : NumSamples
+        }
+
+    }
+
+}

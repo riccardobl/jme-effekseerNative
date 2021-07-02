@@ -1,5 +1,4 @@
 import com.jme.effekseer.EffekseerEmitterControl;
-import com.jme.effekseer.EffekseerRenderer;
 import com.jme3.app.SimpleApplication;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
@@ -16,6 +15,7 @@ import org.jesse.JesseSpatial.JesseAnimations;
 
 import com.jme.effekseer.driver.EffekseerEmissionDriverGeneric;
 import com.jme.effekseer.driver.fun.impl.*;
+import com.jme.effekseer.jme3.EffekseerRenderer;
 
 public class EffekseerTestGUI extends SimpleApplication{
 
@@ -35,7 +35,7 @@ public class EffekseerTestGUI extends SimpleApplication{
         EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(stateManager, guiViewPort,assetManager, settings.isGammaCorrection());
  
         // Load an effect
-        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("Effekts/prova.efkefc");
+        EffekseerEmitterControl effekt=(EffekseerEmitterControl)assetManager.loadAsset("effekts/Basic/OnlySoft.efkefc");
 
         effekt.setDriver(
             new EffekseerEmissionDriverGeneric()
@@ -47,7 +47,7 @@ public class EffekseerTestGUI extends SimpleApplication{
         Node n=new Node();
         n.addControl(effekt);
         n.setLocalTranslation(cam.getWidth() / 2,cam.getHeight() / 2,0);
-        n.setLocalScale(60f);
+        n.setLocalScale((float)cam.getWidth()/12f);
 
         guiNode.attachChild(n);
     }

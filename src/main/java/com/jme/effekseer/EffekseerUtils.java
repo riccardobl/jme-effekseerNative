@@ -18,6 +18,7 @@ import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.AssetNotFoundException;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.Caps;
 import com.jme3.renderer.RenderContext;
@@ -26,7 +27,9 @@ import com.jme3.renderer.RendererException;
 import com.jme3.renderer.opengl.GL;
 import com.jme3.renderer.opengl.GLFbo;
 import com.jme3.renderer.opengl.GLRenderer;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Quad;
 import com.jme3.texture.FrameBuffer;
 import com.jme3.texture.Image.Format;
 import com.jme3.texture.Texture;
@@ -34,10 +37,18 @@ import com.jme3.texture.Texture2D;
 
 public class EffekseerUtils{
 
+    public static class FrameBufferCopy{
+        FrameBuffer fb;
+        Geometry copier;
+        public Texture2D depthTx;
+        public Texture2D colorTx;
+        Format colorFormat,depthFormat;
+    }
+
     private static class State{
         private RenderContext renderContext;
         private GLFbo glfbo;
-        private Map<FrameBuffer,FrameBuffer> copyBuffer=new WeakHashMap<FrameBuffer,FrameBuffer>();
+        private Map<FrameBuffer,FrameBufferCopy> copyBuffer=new WeakHashMap<FrameBuffer,FrameBufferCopy>();
         private final ColorRGBA tmpColor=new ColorRGBA();
     }
 
@@ -76,6 +87,8 @@ public class EffekseerUtils{
         return state;
     }
     
+
+    @Deprecated
     public static void blitFrameBuffer(RenderManager rm, FrameBuffer src, FrameBuffer dst, boolean copyColor, boolean copyDepth) {
         blitFrameBuffer(rm, src, dst, copyColor, copyDepth,src.getWidth(),src.getHeight());
     }
@@ -183,29 +196,105 @@ public class EffekseerUtils{
         return cfb;
     }
 
-
-    public static Texture copyDepthFromFrameBuffer(RenderManager renderManager, FrameBuffer in,int width,int height) {
+    
+    @Deprecated
+    public static FrameBuffer copyFrameBuffer(RenderManager renderManager, FrameBuffer in,int width,int height) {
         // assert in!=null;
         State state=getState(renderManager);
 
-        Format depthFormat=in!=null?in.getDepthBuffer().getFormat():Format.Depth;
+        Format depthFormat=in!=null?in.getDepthBuffer().getFormat():Format.Depth32F;
+        Format colorFormat=in!=null?in.getColorBuffer().getFormat():Format.RGB16F;
 
         // int width=in.getWidth();
         // int height=in.getHeight();
 
-        FrameBuffer depthTarget=state.copyBuffer.get(in);
+        FrameBufferCopy fbc=state.copyBuffer.get(in);
+        FrameBuffer depthTarget=fbc!=null?fbc.fb:null;
 
-        if(depthTarget == null || depthTarget.getWidth() != width || depthTarget.getHeight() != height || depthTarget.getDepthBuffer().getFormat() != depthFormat){
+        if(depthTarget == null || depthTarget.getWidth() != width || depthTarget.getHeight() != height 
+        || depthTarget.getDepthBuffer().getFormat() != depthFormat || depthTarget.getColorBuffer(0).getFormat()!=colorFormat){
             System.out.println("Create depth target " + width + "x" + height);
             if(depthTarget != null) depthTarget.dispose();
             depthTarget=new FrameBuffer(width,height,1);
-            depthTarget.setDepthTexture(new Texture2D(width,height,depthFormat));
-            state.copyBuffer.put(in,depthTarget);
+            fbc=new FrameBufferCopy();
+            fbc.fb=depthTarget;
+            fbc.colorFormat=colorFormat;
+            fbc.depthFormat=depthFormat;
+            depthTarget.setDepthTexture(fbc.depthTx=new Texture2D(width,height,depthFormat));
+            depthTarget.setColorTexture(fbc.colorTx= new Texture2D(width,height,colorFormat));            
+            state.copyBuffer.put(in,fbc);
         }
-        EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,false,true,width,height);
-        return depthTarget.getDepthBuffer().getTexture();
 
+        EffekseerUtils.blitFrameBuffer(renderManager,in,depthTarget,true,true,width,height);
+        return depthTarget;
     }
+
+
+
+  
+    
+    public static FrameBufferCopy copyFrameBuffer(AssetManager assetManager,
+    RenderManager renderManager, FrameBuffer in,int width,int height,
+    boolean copyColor,int colorTarget,boolean copyDepth) {
+        // assert in!=null;
+        State state=getState(renderManager);
+
+        Format depthFormat=Format.R32F;
+        Format colorFormat=Format.RGB16F;
+
+        // int width=in.getWidth();
+        // int height=in.getHeight();
+
+        FrameBufferCopy fbc=state.copyBuffer.get(in);
+        FrameBuffer target=fbc!=null?fbc.fb:null;
+
+        if(target == null || target.getWidth() != width || target.getHeight() != height || fbc.depthFormat != depthFormat ||fbc.colorFormat != colorFormat || target.getColorBuffer(0).getFormat()!=colorFormat){
+            if(target != null) target.dispose();
+            target=new FrameBuffer(width,height,1);
+            fbc=new FrameBufferCopy();
+            fbc.fb=target;
+            fbc.colorFormat=colorFormat;
+            fbc.depthFormat=depthFormat;
+            if(copyColor){
+                target.addColorTexture(fbc.colorTx=new Texture2D(width,height,colorFormat));
+            }
+            if(copyDepth){
+                target.addColorTexture(fbc.depthTx=new Texture2D(width,height,depthFormat));
+            }
+
+            if(target.getNumColorBuffers()>1)target.setMultiTarget(true);
+            // fbc.cam=new Camera(width,height);
+            state.copyBuffer.put(in,fbc);
+        }
+
+        // copy
+        int nSamples=in.getSamples();
+        Texture inColor=copyColor?in.getColorBuffer(colorTarget).getTexture():null;
+        Texture inDepth=copyDepth?in.getDepthBuffer().getTexture():null;
+        assert !copyDepth||inDepth!=null;
+        assert !copyColor||inColor!=null;
+        
+        Geometry geom=fbc.copier;
+        
+        if(geom==null){
+            geom=fbc.copier=new Geometry("Copier",new Quad(1,1));
+            geom.setMaterial(new Material(assetManager,"Effekseer/copier/Copier.j3md"));
+        }
+
+        geom.getMaterial().setTexture("Color", inColor);
+        geom.getMaterial().setTexture("Depth", inDepth);
+        geom.getMaterial().setInt("NumSamples", nSamples);
+
+  
+
+        FrameBuffer ofb=bindFrameBuffer(renderManager,target);
+        renderManager.renderGeometry(geom);
+        bindFrameBuffer(renderManager,ofb);
+
+        return fbc;
+    }
+
+
 
 
 

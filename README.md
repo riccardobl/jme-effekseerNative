@@ -2,19 +2,11 @@
 
 This is a library that uses [EffekseerForMultiLanguages](https://github.com/effekseer/EffekseerForMultiLanguages) to load and render effects made with Effekseer in jme.
 
-It extends Effekseer by providing basic soft particles and support for offscreen rendering.
-
 Supported platforms:
 - Windows 64bit
 - Linux 64bit
 
-Extra features:
-- Soft particles
-- Multiscene rendering
-- Offscreen rendering
-
 Missing features:
-- Distortions
 - Sounds
 
 ## Gradle 
@@ -40,8 +32,8 @@ dependencies {
 //   otherwise it will be attached as a scene processor.
 //   Note: if a FilterPostProcessor is used in the viewport, EffekseerRenderer must be called before 
 //         attaching any other filter, becoming defacto the first filter to be attached to the FilterPostProcessor
-// FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
-// viewPort.addProcessor(fpp);
+FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
+viewPort.addProcessor(fpp);
 
 // Add Effekseer Renderer
 EffekseerRenderer effekseerRenderer=EffekseerRenderer.addToViewPort(stateManager, viewPort, assetManager, settings.isGammaCorrection());
@@ -99,13 +91,12 @@ Effekseer.beginRender(root2);
 
 // Render
 Effekseer.render(
-	Renderer, /* The opengl renderer */
-	Camera, /* The scene camera */
-	FrameBuffer, /* The render target */
-	Texture2D, /* The depth texture of the current scene (for soft particles, null to disable soft particles) */
-	Float, /* Particles hardness (for soft particles) */
-	Float, /* Particles contrast (for soft particles) */
-	Boolean /* True if rendering on 2d Target */
+	Renderer gl, /* The opengl renderer */
+	Camera cam, /* The scene camera */
+	FrameBuffer target, /* The render target */
+	Texture2D color, /* The current scene, used for distortions  (null to disable distortions) */
+	Texture2D depth, /* The depth of the current scene, used for soft particles (null to disable soft particles) */
+	boolean isOrthographic /* true if rendering in orthographic mode */
 );
 
 // End the render
@@ -113,17 +104,21 @@ Effekseer.endRender();
 
 ```
 
-Note: opengl cannot read and write on the same target, this means that depth that comes from the same target framebuffer has to be copied.
-The following helper utility can be used to do it in a reasonably fast way (it used glBlitFramebuffer and a pool of cached framebuffers internally):
+Note: opengl cannot read and write on the same buffer, this means that depth and colors that come from the same target framebuffer has to be copied.
+The following helper utility can be used to do it in a reasonably fast way:
 ```java
-Texture copiedDepth=EffekseerUtils.copyDepthFromFrameBuffer(
-	RenderManager, /* the render manager */
-	FrameBuffer, /* source */
-	int, /* width */
-	int /* height */
+FrameBufferCopy copiedFb=EffekseerUtils.copyFrameBuffer(
+	AssetManager am, /* the asset manager */
+	RenderManager rm, /* the render manager */
+	FrameBuffer source, /* source */
+	int width, /* width */
+	int height, /* height */
+	boolean copyColor, /* true to copy the color buffer */
+	boolean colorTarget, /* which target to copy (0=first) */
+	boolean copyDepth /* true to copy the depth buffer*/
 );
 ```
 
-### Limitations
+### Limitations with particles on the GUI
 - There is an issue with depth sorting when using *Managed Rendering* to render inside the SimpleApplication's guiViewPort: the particles will always be rendered on top. Finding a generic workaround for this issue is pretty complex due to the way the engine handles the guiViewPort. A possible solution is to use *Advanced Usage - Manual Rendering* to render a special root node containing only "gui particles" on top of the main framebuffer using an appropriate Camera.
 

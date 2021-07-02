@@ -3,6 +3,9 @@ MaterialDef  Composer {
     MaterialParameters {
         Int NumSamples        
         Texture2D Texture
+
+        Texture2D DepthTexture // Unused
+        Int NumSamplesDepth   // Unused     
     }
 
     Technique {
@@ -14,6 +17,7 @@ MaterialDef  Composer {
 
         Defines {
             RESOLVE_MS : NumSamples
+            RESOLVE_MS_DEPTH: NumSamplesDepth
         }
 
     }
