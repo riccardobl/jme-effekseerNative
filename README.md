@@ -9,22 +9,27 @@ Supported platforms:
 Missing features:
 - Sounds
 
-## Gradle 
+## Gradle coordinates (github packages)
 ```gradle
 plugins {
     id "io.github.0ffz.github-packages" version "1.2.1"
 }
+
 repositories {
     maven githubPackage.invoke("riccardobl")
 }
+
 dependencies {
-    implementation 'wf.frk:jme-effekseer-native:0.3'
+    implementation 'wf.frk:jme-effekseer-native:0.4'
 }
 
 ```
 
 
 ## Usage - Managed Rendering
+
+For infos regarding version to version upgrade see [docs/UPGRADE.md](docs/UPGRADE.md)
+
 ```java
 // Add a filter post processor to your viewPort
 // optional:
@@ -57,7 +62,7 @@ rootNode.attachChild(n);
 
 ```
 
-### Advanced Usage - Manual Rendering
+## Advanced Usage - Manual Rendering
 This is intended to be used on custom render pipelines or offscreen rendering
 ```java
 // Init Effekseer
@@ -73,13 +78,12 @@ Effekseer.beginRender(root1);
 
 // Render
 Effekseer.render(
-	Renderer, /* The opengl renderer */
-	Camera, /* The scene camera */
-	FrameBuffer, /* The render target */
-	Texture2D, /* The depth texture of the current scene (for soft particles, null to disable soft particles) */
-	Float, /* Particles hardness (for soft particles) */
-	Float, /* Particles contrast (for soft particles) */
-	Boolean /* True if rendering on 2d Target */
+	Renderer gl, /* The opengl renderer */
+	Camera cam, /* The scene camera */
+	FrameBuffer target, /* The render target */
+	Texture2D color, /* The current scene, used for distortions  (null to disable distortions) */
+	Texture2D depth, /* The depth of the current scene, used for soft particles (null to disable soft particles) */
+	boolean isOrthographic /* true if rendering in orthographic mode */
 );
 
 // End the render
@@ -119,6 +123,6 @@ FrameBufferCopy copiedFb=EffekseerUtils.copyFrameBuffer(
 );
 ```
 
-### Limitations with particles on the GUI
-- There is an issue with depth sorting when using *Managed Rendering* to render inside the SimpleApplication's guiViewPort: the particles will always be rendered on top. Finding a generic workaround for this issue is pretty complex due to the way the engine handles the guiViewPort. A possible solution is to use *Advanced Usage - Manual Rendering* to render a special root node containing only "gui particles" on top of the main framebuffer using an appropriate Camera.
+## Limitations with particles on the GUI
+There is an issue with depth sorting when using *Managed Rendering* to render inside the SimpleApplication's guiViewPort: the particles will always be rendered on top. Finding a generic workaround for this issue is pretty complex due to the way the engine handles the guiViewPort. A possible solution is to use *Advanced Usage - Manual Rendering* to render a special root node containing only "gui particles" on top of the main framebuffer using an appropriate Camera.
 
