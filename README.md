@@ -108,7 +108,7 @@ Effekseer.endRender();
 
 ```
 
-Note: opengl cannot read and write on the same buffer, this means that depth and colors that come from the same target framebuffer has to be copied.
+Note: opengl cannot read and write on the same buffer, this means that depth and colors that come from the same target framebuffer have to be copied.
 The following helper utility can be used to do it in a reasonably fast way:
 ```java
 FrameBufferCopy copiedFb=EffekseerUtils.copyFrameBuffer(
