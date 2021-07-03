@@ -23,7 +23,6 @@ publishing {
             groupId =  "wf.frk"
             artifactId = rootProject.name
             version = project.hasProperty('in_version') ? project.getProperty('in_version') : '-SNAPSHOT'
-
             from components.java
         }
     }
@@ -38,7 +37,7 @@ publishing {
 
 
 dependencies {
-    api "effekseer:effekseer-native:test6"
+    api "effekseer:effekseer-native:81957c3"
 
     compileOnly "org.jmonkeyengine:jme3-core:3.2.3-stable"
     compileOnly "org.jmonkeyengine:jme3-desktop:3.2.3-stable"
