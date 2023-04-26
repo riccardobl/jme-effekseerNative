@@ -333,7 +333,7 @@ public class Effekseer{
         state.m4.setScale(tr.getScale());
 
         state.m4.get(state.v16, true);
-        state.core.SetEffectTransformMatrix(handler, state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11] );
+        state.core.SetEffectTransformBaseMatrix(handler, state.v16[0],state.v16[1],state.v16[2],state.v16[3],state.v16[4],state.v16[5],state.v16[6],state.v16[7],state.v16[8],state.v16[9],state.v16[10],state.v16[11] );
     }
 
 
