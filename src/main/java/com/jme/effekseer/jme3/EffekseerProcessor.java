@@ -75,7 +75,7 @@ public class EffekseerProcessor implements SceneProcessor{
         int height=viewPort.getCamera().getHeight();
 
         Format depthFormat=Format.Depth;
-        Format colorFormat=Format.RGB16F;
+        Format colorFormat=Format.RGB8;
 
         if(renderTarget == null || renderTarget.getWidth() != width || renderTarget.getHeight() != height || renderTarget.isSrgb()!=sRGB){
             System.out.println("Create render target " + width  + "x" + height);
@@ -83,7 +83,7 @@ public class EffekseerProcessor implements SceneProcessor{
             renderTarget=new FrameBuffer(width,height,1);
             renderTarget.setDepthTexture(new Texture2D(width,height,1,depthFormat));
             renderTarget.setColorTexture(new Texture2D(width,height,1,colorFormat));
-            if(sRGB){
+            if(sRGB){                
                 System.out.println("Enable sRGB");
                 renderTarget.getColorBuffer().getTexture().getImage().setColorSpace(ColorSpace.sRGB);
                 renderTarget.setSrgb(sRGB);
